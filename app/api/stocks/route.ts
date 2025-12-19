@@ -50,7 +50,8 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `;
 
-    return NextResponse.json(result[0], { status: 201 });
+    const rows = result.rows || result;
+    return NextResponse.json(rows[0], { status: 201 });
   } catch (error) {
     console.error('銘柄登録エラー:', error);
     return NextResponse.json(
@@ -68,7 +69,8 @@ export async function GET() {
       ORDER BY created_at DESC
     `;
 
-    return NextResponse.json(result);
+    const rows = result.rows || result;
+    return NextResponse.json(rows);
   } catch (error) {
     console.error('銘柄取得エラー:', error);
     return NextResponse.json(

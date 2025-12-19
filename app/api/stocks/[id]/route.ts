@@ -4,10 +4,11 @@ import { sql } from '@/lib/db';
 // PUT /api/stocks/[id] - 銘柄更新
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: '無効なIDです' },
@@ -68,14 +69,15 @@ export async function PUT(
       RETURNING *
     `;
 
-    if (result.length === 0) {
+    const rows = result.rows || result;
+    if (rows.length === 0) {
       return NextResponse.json(
         { error: '銘柄が見つかりません' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(result[0]);
+    return NextResponse.json(rows[0]);
   } catch (error) {
     console.error('銘柄更新エラー:', error);
     return NextResponse.json(
@@ -88,10 +90,11 @@ export async function PUT(
 // DELETE /api/stocks/[id] - 銘柄削除
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: '無効なIDです' },
@@ -106,14 +109,15 @@ export async function DELETE(
       RETURNING *
     `;
 
-    if (result.length === 0) {
+    const rows = result.rows || result;
+    if (rows.length === 0) {
       return NextResponse.json(
         { error: '銘柄が見つかりません' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ message: '銘柄を削除しました', deleted: result[0] });
+    return NextResponse.json({ message: '銘柄を削除しました', deleted: rows[0] });
   } catch (error) {
     console.error('銘柄削除エラー:', error);
     return NextResponse.json(
