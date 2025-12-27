@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
-import { getFinancialRatios, getAllFinancialData } from '@/lib/fmp';
+import { getFinancialMetrics } from '@/lib/financials';
 
 type Params = Promise<{ id: string }>;
 
 /**
  * GET /api/stocks/[id]/financials
- * 銘柄の財務指標を取得
+ * 銘柄の財務指標を取得（Yahoo Finance → みんかぶ の順でフォールバック）
  */
 export async function GET(
   request: NextRequest,
@@ -39,50 +39,44 @@ export async function GET(
 
     const stock = stocks[0];
 
-    // FMP APIから財務指標を取得
-    const { ratios, profile, keyMetrics } = await getAllFinancialData(stock.code);
+    // Yahoo Finance / みんかぶ から財務指標を取得
+    const metrics = await getFinancialMetrics(stock.code);
+
+    if (!metrics) {
+      return NextResponse.json({
+        success: false,
+        stockId: stock.id,
+        code: stock.code,
+        name: stock.name,
+        message: '財務指標を取得できませんでした',
+        financials: null,
+      });
+    }
 
     return NextResponse.json({
       success: true,
       stockId: stock.id,
       code: stock.code,
       name: stock.name,
+      source: metrics.source,
       financials: {
-        // 配当性向（%表示）
-        dividendPayoutRatio: ratios?.dividendPayoutRatio 
-          ? (ratios.dividendPayoutRatio * 100).toFixed(2) 
-          : null,
-        // 配当利回り（%表示）
-        dividendYield: ratios?.dividendYield 
-          ? (ratios.dividendYield * 100).toFixed(2) 
-          : null,
-        // 自己資本比率（%表示）
-        equityRatio: ratios?.equityRatio 
-          ? ratios.equityRatio.toFixed(2) 
-          : null,
-        // 負債資本比率
-        debtEquityRatio: ratios?.debtEquityRatio 
-          ? ratios.debtEquityRatio.toFixed(2) 
-          : null,
-        // ROE（%表示）
-        returnOnEquity: ratios?.returnOnEquity 
-          ? (ratios.returnOnEquity * 100).toFixed(2) 
-          : null,
-        // PER
-        priceToEarningsRatio: ratios?.priceToEarningsRatio 
-          ? ratios.priceToEarningsRatio.toFixed(2) 
-          : null,
-        // PBR
-        priceToBookRatio: ratios?.priceToBookRatio 
-          ? ratios.priceToBookRatio.toFixed(2) 
-          : null,
+        // 配当性向（%）
+        dividendPayoutRatio: metrics.dividendPayoutRatio?.toFixed(2) ?? null,
+        // 配当利回り（%）
+        dividendYield: metrics.dividendYield?.toFixed(2) ?? null,
+        // 自己資本比率（%）
+        equityRatio: metrics.equityRatio?.toFixed(2) ?? null,
+        // ROE（%）
+        returnOnEquity: metrics.roe?.toFixed(2) ?? null,
+        // PER（倍）
+        priceToEarningsRatio: metrics.per?.toFixed(2) ?? null,
+        // PBR（倍）
+        priceToBookRatio: metrics.pbr?.toFixed(2) ?? null,
+        // EPS（円）
+        eps: metrics.eps?.toFixed(2) ?? null,
+        // BPS（円）
+        bps: metrics.bps?.toFixed(2) ?? null,
       },
-      profile: profile ? {
-        sector: profile.sector,
-        industry: profile.industry,
-        lastDividend: profile.lastDividend,
-        marketCap: profile.mktCap,
-      } : null,
     });
   } catch (error) {
     console.error('[財務指標API] エラー:', error);

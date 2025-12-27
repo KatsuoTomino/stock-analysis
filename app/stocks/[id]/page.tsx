@@ -20,10 +20,11 @@ interface FinancialData {
   dividendPayoutRatio: string | null;
   dividendYield: string | null;
   equityRatio: string | null;
-  debtEquityRatio: string | null;
   returnOnEquity: string | null;
   priceToEarningsRatio: string | null;
   priceToBookRatio: string | null;
+  eps: string | null;
+  bps: string | null;
 }
 
 export default function StockDetailPage() {
@@ -374,17 +375,23 @@ export default function StockDetailPage() {
                   {financials.priceToBookRatio ? `${financials.priceToBookRatio}倍` : '-'}
                 </p>
               </div>
+              <div className="bg-indigo-50 rounded-lg p-4">
+                <p className="text-sm font-medium text-gray-700 mb-1">EPS</p>
+                <p className="text-xl font-bold text-indigo-600">
+                  {financials.eps ? `${financials.eps}円` : '-'}
+                </p>
+              </div>
               <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700 mb-1">負債資本比率</p>
+                <p className="text-sm font-medium text-gray-700 mb-1">BPS</p>
                 <p className="text-xl font-bold text-gray-600">
-                  {financials.debtEquityRatio ? `${financials.debtEquityRatio}` : '-'}
+                  {financials.bps ? `${financials.bps}円` : '-'}
                 </p>
               </div>
             </div>
           ) : (
             <div className="text-gray-600">
               <p>財務指標を取得できませんでした。</p>
-              <p className="text-sm mt-2">FMP_API_KEY 環境変数が設定されているか確認してください。</p>
+              <p className="text-sm mt-2">しばらく時間をおいて再度お試しください。</p>
             </div>
           )}
         </div>
