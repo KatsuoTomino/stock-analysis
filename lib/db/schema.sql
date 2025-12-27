@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS stocks (
   purchase_price DECIMAL(10, 2) NOT NULL,
   shares INTEGER NOT NULL,
   purchase_amount DECIMAL(12, 2) NOT NULL,
+  dividend_amount DECIMAL(10, 2) DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

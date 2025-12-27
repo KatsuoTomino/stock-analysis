@@ -199,7 +199,7 @@ export default function EditStockPage() {
                 maxLength={4}
                 pattern="[0-9]{4}"
                 placeholder="例: 7203"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               />
               <p className="mt-1 text-sm text-gray-500">4桁の数字を入力してください</p>
             </div>
@@ -219,7 +219,7 @@ export default function EditStockPage() {
                 onChange={handleChange}
                 required
                 placeholder="例: トヨタ自動車"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               />
             </div>
 
@@ -240,7 +240,7 @@ export default function EditStockPage() {
                 min="0"
                 step="0.01"
                 placeholder="例: 2500.00"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               />
             </div>
 
@@ -261,7 +261,7 @@ export default function EditStockPage() {
                 min="1"
                 step="1"
                 placeholder="例: 100"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               />
             </div>
 
@@ -282,7 +282,7 @@ export default function EditStockPage() {
                 min="0"
                 step="0.01"
                 placeholder="例: 250000.00"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               />
             </div>
 

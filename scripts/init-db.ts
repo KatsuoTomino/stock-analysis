@@ -27,7 +27,8 @@ async function initDatabase() {
       if (statement) {
         console.log(`実行中: ${statement.substring(0, 50)}...`);
         try {
-          await sql.unsafe(statement + ';');
+          // @ts-ignore - sql.query()は実行時に利用可能
+          await (sql as any).query(statement + ';');
         } catch (error: any) {
           // IF NOT EXISTS の場合、既に存在するエラーは無視
           if (error?.message?.includes('already exists')) {
@@ -60,4 +61,3 @@ async function initDatabase() {
 }
 
 initDatabase();
-
