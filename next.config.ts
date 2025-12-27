@@ -6,10 +6,6 @@ const nextConfig: NextConfig = {
     // ビルドエラーを無視（scriptsディレクトリのエラーを回避）
     ignoreBuildErrors: true,
   },
-  eslint: {
-    // ESLintエラーも無視
-    ignoreDuringBuilds: true,
-  },
 };
 
 export default nextConfig;
