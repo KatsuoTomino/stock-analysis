@@ -17,7 +17,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { code, name, purchase_price, shares, purchase_amount, memo } = body;
+    const { code, name, purchase_price, shares, purchase_amount, memo, industry, payout_ratio } = body;
 
     // バリデーション
     if (!code || !name || purchase_price === undefined || !shares || purchase_amount === undefined) {
@@ -45,6 +45,37 @@ export async function PUT(
         // 警告ログを出力（エラーにはしない）
         console.warn(`メモが50文字を超えています。切り詰めます: ${memo.length}文字 -> 50文字`);
       }
+    }
+
+    // 業種のバリデーションと正規化（50文字以内、空文字列も許可）
+    let finalIndustry: string | null = null;
+    if (industry !== undefined && industry !== null) {
+      if (typeof industry !== 'string') {
+        return NextResponse.json(
+          { error: '業種は文字列である必要があります' },
+          { status: 400 }
+        );
+      }
+      const trimmedIndustry = industry.length > 50 ? industry.slice(0, 50) : industry;
+      finalIndustry = trimmedIndustry.trim() === '' ? null : trimmedIndustry;
+    }
+
+    // 配当性向のバリデーション（0-100の範囲、空文字列も許可）
+    let finalPayoutRatio: number | null = null;
+    if (payout_ratio !== undefined && payout_ratio !== null) {
+      if (typeof payout_ratio !== 'number') {
+        return NextResponse.json(
+          { error: '配当性向は数値である必要があります' },
+          { status: 400 }
+        );
+      }
+      if (payout_ratio < 0 || payout_ratio > 100) {
+        return NextResponse.json(
+          { error: '配当性向は0から100の範囲である必要があります' },
+          { status: 400 }
+        );
+      }
+      finalPayoutRatio = payout_ratio;
     }
 
     if (typeof code !== 'string' || code.length !== 4) {
@@ -76,14 +107,6 @@ export async function PUT(
     }
 
     // データベースを更新
-    // memoカラムが存在しない場合に備えて、まず追加を試みる
-    try {
-      await sql`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS memo VARCHAR(50) DEFAULT NULL`;
-    } catch (alterError) {
-      // カラムが既に存在する場合は無視
-      console.log('memo column already exists or alter failed:', alterError);
-    }
-
     const result = await sql`
       UPDATE stocks
       SET 
@@ -92,7 +115,9 @@ export async function PUT(
         purchase_price = ${purchase_price},
         shares = ${shares},
         purchase_amount = ${purchase_amount},
-        memo = ${finalMemo !== undefined ? finalMemo : null},
+        memo = ${finalMemo},
+        industry = ${finalIndustry},
+        payout_ratio = ${finalPayoutRatio},
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ${id}
       RETURNING *

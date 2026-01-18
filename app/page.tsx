@@ -27,7 +27,6 @@ interface StockWithPrice extends Stock {
   dividendAmount: number | null; // 一株配当（年間、円）
   dividendYieldAtPurchase: number | null; // 取得株価の配当利回り（%）
   dividendYieldAtCurrent: number | null; // 現在株価の配当利回り（%）
-  infoLoading: boolean;
 }
 
 export default function Home() {
@@ -89,7 +88,6 @@ export default function Home() {
         dividendAmount: stock.dividend_amount || null,
         dividendYieldAtPurchase: null,
         dividendYieldAtCurrent: null,
-        infoLoading: false,
       }));
       setStocks(stocksWithPrice);
       setError(null);
@@ -200,78 +198,9 @@ export default function Home() {
       setTimeout(() => {
         fetchDividendInfo(updatedStocks);
       }, 1000);
-      // 株式情報（業種・配当性向）も取得
-      setTimeout(() => {
-        fetchStockInfo(updatedStocks);
-      }, 2000);
     } else {
       console.log('株価が取得できていないため、配当情報の取得をスキップします');
     }
-  };
-
-  const fetchStockInfo = async (stocksList?: StockWithPrice[]) => {
-    const targetStocks = stocksList || stocks;
-    
-    // 業種と配当性向がまだ取得されていない銘柄のみ取得
-    const stocksToFetch = targetStocks.filter(
-      stock => !stock.industry && !stock.payout_ratio && !stock.infoLoading
-    );
-    
-    if (stocksToFetch.length === 0) {
-      console.log('[株式情報取得] 取得が必要な銘柄がありません');
-      return;
-    }
-    
-    console.log(`[株式情報取得] 開始: ${stocksToFetch.length}件の銘柄を取得します`);
-    
-    // 各銘柄の情報を順次取得（レート制限対策）
-    for (const stock of stocksToFetch) {
-      try {
-        // ローディング状態を設定
-        setStocks((prev) =>
-          prev.map((s) =>
-            s.id === stock.id ? { ...s, infoLoading: true } : s
-          )
-        );
-        
-        const response = await fetch(`/api/stocks/${stock.id}/info`);
-        if (response.ok) {
-          const data = await response.json();
-          
-          setStocks((prev) =>
-            prev.map((s) =>
-              s.id === stock.id 
-                ? { 
-                    ...s, 
-                    industry: data.industry, 
-                    payout_ratio: data.payoutRatio,
-                    infoLoading: false 
-                  } 
-                : s
-            )
-          );
-          console.log(`[株式情報取得] 成功: ${stock.code} - 業種: ${data.industry}, 配当性向: ${data.payoutRatio}%`);
-        } else {
-          setStocks((prev) =>
-            prev.map((s) =>
-              s.id === stock.id ? { ...s, infoLoading: false } : s
-            )
-          );
-        }
-      } catch (err) {
-        console.error(`[株式情報取得] エラー: ${stock.code}`, err);
-        setStocks((prev) =>
-          prev.map((s) =>
-            s.id === stock.id ? { ...s, infoLoading: false } : s
-          )
-        );
-      }
-      
-      // レート制限対策: リクエスト間に少し待機
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-    
-    console.log('[株式情報取得] 完了');
   };
 
   const fetchDividendInfo = async (stocksList?: StockWithPrice[]) => {
@@ -724,9 +653,7 @@ export default function Home() {
                           </Link>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {stock.infoLoading ? (
-                            <span className="text-gray-500">取得中...</span>
-                          ) : stock.industry ? (
+                          {stock.industry ? (
                             <span className="text-gray-900">{stock.industry}</span>
                           ) : (
                             <span className="text-gray-400">-</span>
@@ -802,9 +729,7 @@ export default function Home() {
                           )}
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-right">
-                          {stock.infoLoading ? (
-                            <span className="text-gray-500">取得中...</span>
-                          ) : stock.payout_ratio !== null && stock.payout_ratio > 0 ? (
+                          {stock.payout_ratio !== null && stock.payout_ratio > 0 ? (
                             <span className={`font-medium ${stock.payout_ratio > 80 ? 'text-red-600' : stock.payout_ratio > 50 ? 'text-yellow-600' : 'text-green-600'}`}>
                               {stock.payout_ratio.toFixed(1)}%
                             </span>

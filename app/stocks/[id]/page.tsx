@@ -16,6 +16,8 @@ interface Stock {
   purchase_amount: number;
   dividend_amount: number | null;
   memo: string | null;
+  industry: string | null;
+  payout_ratio: number | null;
 }
 
 
@@ -37,6 +39,8 @@ export default function StockDetailPage() {
     purchase_price: '',
     shares: '',
     memo: '',
+    industry: '',
+    payout_ratio: '',
   });
   const isSubmittingRef = useRef(false);
 
@@ -79,6 +83,8 @@ export default function StockDetailPage() {
         purchase_price: foundStock.purchase_price ? foundStock.purchase_price.toString() : '',
         shares: foundStock.shares ? foundStock.shares.toString() : '',
         memo: foundStock.memo ? String(foundStock.memo) : '',
+        industry: foundStock.industry ? String(foundStock.industry) : '',
+        payout_ratio: foundStock.payout_ratio ? foundStock.payout_ratio.toString() : '',
       });
       setError(null);
     } catch (err) {
@@ -196,22 +202,22 @@ export default function StockDetailPage() {
         }
       }
 
-      // 取得株価と株数を更新（メモも一緒に更新）
-      // purchasePriceまたはsharesが入力されている場合、またはメモが入力されている場合に更新
-      const shouldUpdateStock = 
-        (purchasePrice !== null && purchasePrice >= 0) ||
-        (shares !== null && shares >= 0) ||
-        formData.memo !== undefined;
+      // 取得株価、株数、メモ、業種、配当性向を更新
+      const finalPurchasePrice = purchasePrice !== null && purchasePrice >= 0 
+        ? purchasePrice 
+        : stock?.purchase_price || 0;
+      const finalShares = shares !== null && shares >= 0 
+        ? shares 
+        : stock?.shares || 0;
+      const purchaseAmount = finalPurchasePrice * finalShares;
+      
+      // 業種と配当性向の処理
+      const industry = formData.industry?.trim() || null;
+      const payoutRatio = formData.payout_ratio 
+        ? (parseFloat(formData.payout_ratio) >= 0 ? parseFloat(formData.payout_ratio) : null)
+        : null;
 
-      if (shouldUpdateStock && stock) {
-        const finalPurchasePrice = purchasePrice !== null && purchasePrice >= 0 
-          ? purchasePrice 
-          : stock.purchase_price || 0;
-        const finalShares = shares !== null && shares >= 0 
-          ? shares 
-          : stock.shares || 0;
-        const purchaseAmount = finalPurchasePrice * finalShares;
-
+      if (stock) {
         const stockResponse = await fetch(`/api/stocks/${id}`, {
           method: 'PUT',
           headers: {
@@ -224,6 +230,8 @@ export default function StockDetailPage() {
             shares: finalShares,
             purchase_amount: purchaseAmount,
             memo: formData.memo || null,
+            industry: industry,
+            payout_ratio: payoutRatio,
           }),
         });
 
@@ -507,6 +515,50 @@ export default function StockDetailPage() {
                   <span className="text-gray-500 ml-2">
                     ({(formData.memo || '').length}/50文字)
                   </span>
+                </p>
+              </div>
+              <div>
+                <label
+                  htmlFor="industry"
+                  className="block text-sm font-medium text-gray-900 mb-2"
+                >
+                  業種
+                </label>
+                <input
+                  type="text"
+                  id="industry"
+                  name="industry"
+                  value={formData.industry}
+                  onChange={handleChange}
+                  maxLength={50}
+                  placeholder="例: 自動車"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
+                />
+                <p className="mt-2 text-sm text-gray-700">
+                  銘柄の業種を入力してください。メインページでも表示されます。
+                </p>
+              </div>
+              <div>
+                <label
+                  htmlFor="payout_ratio"
+                  className="block text-sm font-medium text-gray-900 mb-2"
+                >
+                  配当性向（%）
+                </label>
+                <input
+                  type="number"
+                  id="payout_ratio"
+                  name="payout_ratio"
+                  value={formData.payout_ratio}
+                  onChange={handleChange}
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  placeholder="例: 30.5"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
+                />
+                <p className="mt-2 text-sm text-gray-700">
+                  配当性向をパーセンテージで入力してください（0-100）。メインページでも表示されます。
                 </p>
               </div>
               <button
