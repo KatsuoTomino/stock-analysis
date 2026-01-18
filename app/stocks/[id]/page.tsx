@@ -17,16 +17,6 @@ interface Stock {
   memo: string | null;
 }
 
-interface FinancialData {
-  dividendPayoutRatio: string | null;
-  dividendYield: string | null;
-  equityRatio: string | null;
-  returnOnEquity: string | null;
-  priceToEarningsRatio: string | null;
-  priceToBookRatio: string | null;
-  eps: string | null;
-  bps: string | null;
-}
 
 export default function StockDetailPage() {
   const params = useParams();
@@ -35,8 +25,6 @@ export default function StockDetailPage() {
   const [stock, setStock] = useState<Stock | null>(null);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [priceLoading, setPriceLoading] = useState(false);
-  const [financials, setFinancials] = useState<FinancialData | null>(null);
-  const [financialsLoading, setFinancialsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,10 +46,9 @@ export default function StockDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    // 株価と財務指標を取得
+    // 株価を取得
     if (stock) {
       fetchCurrentPrice();
-      fetchFinancials();
     }
   }, [stock]);
 
@@ -113,30 +100,6 @@ export default function StockDetailPage() {
     }
   };
 
-  const fetchFinancials = async () => {
-    if (!stock) return;
-    
-    setFinancialsLoading(true);
-    try {
-      const response = await fetch(`/api/stocks/${stock.id}/financials`);
-      if (!response.ok) {
-        console.warn('財務指標の取得に失敗しました');
-        setFinancials(null);
-        return;
-      }
-      const data = await response.json();
-      if (data.success && data.financials) {
-        setFinancials(data.financials);
-      } else {
-        setFinancials(null);
-      }
-    } catch (err) {
-      console.error('財務指標取得エラー:', err);
-      setFinancials(null);
-    } finally {
-      setFinancialsLoading(false);
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -367,70 +330,6 @@ export default function StockDetailPage() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* 財務指標 */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">財務指標</h2>
-          {financialsLoading ? (
-            <p className="text-gray-600">取得中...</p>
-          ) : financials ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-blue-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700 mb-1">配当性向</p>
-                <p className="text-xl font-bold text-blue-600">
-                  {financials.dividendPayoutRatio ? `${financials.dividendPayoutRatio}%` : '-'}
-                </p>
-              </div>
-              <div className="bg-green-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700 mb-1">配当利回り</p>
-                <p className="text-xl font-bold text-green-600">
-                  {financials.dividendYield ? `${financials.dividendYield}%` : '-'}
-                </p>
-              </div>
-              <div className="bg-purple-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700 mb-1">自己資本比率</p>
-                <p className="text-xl font-bold text-purple-600">
-                  {financials.equityRatio ? `${financials.equityRatio}%` : '-'}
-                </p>
-              </div>
-              <div className="bg-orange-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700 mb-1">ROE</p>
-                <p className="text-xl font-bold text-orange-600">
-                  {financials.returnOnEquity ? `${financials.returnOnEquity}%` : '-'}
-                </p>
-              </div>
-              <div className="bg-teal-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700 mb-1">PER</p>
-                <p className="text-xl font-bold text-teal-600">
-                  {financials.priceToEarningsRatio ? `${financials.priceToEarningsRatio}倍` : '-'}
-                </p>
-              </div>
-              <div className="bg-pink-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700 mb-1">PBR</p>
-                <p className="text-xl font-bold text-pink-600">
-                  {financials.priceToBookRatio ? `${financials.priceToBookRatio}倍` : '-'}
-                </p>
-              </div>
-              <div className="bg-indigo-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700 mb-1">EPS</p>
-                <p className="text-xl font-bold text-indigo-600">
-                  {financials.eps ? `${financials.eps}円` : '-'}
-                </p>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700 mb-1">BPS</p>
-                <p className="text-xl font-bold text-gray-600">
-                  {financials.bps ? `${financials.bps}円` : '-'}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="text-gray-600">
-              <p>財務指標を取得できませんでした。</p>
-              <p className="text-sm mt-2">しばらく時間をおいて再度お試しください。</p>
-            </div>
-          )}
         </div>
 
         {/* 外部リンク */}
