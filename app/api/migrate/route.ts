@@ -18,6 +18,24 @@ export async function GET() {
       await sql.query(statement);
     }
     
+    // memoカラムのマイグレーションも実行
+    try {
+      const memoMigrationPath = path.join(process.cwd(), 'lib', 'db', 'migration_add_memo.sql');
+      const memoMigration = fs.readFileSync(memoMigrationPath, 'utf8');
+      const memoStatements = memoMigration
+        .split(';')
+        .filter(stmt => stmt.trim().length > 0);
+      
+      for (const statement of memoStatements) {
+        await sql.query(statement + ';');
+      }
+    } catch (memoError: any) {
+      // memoカラムが既に存在する場合はエラーを無視
+      if (!memoError?.message?.includes('already exists') && !memoError?.message?.includes('duplicate')) {
+        console.warn('Memo migration warning:', memoError.message);
+      }
+    }
+    
     return NextResponse.json({ 
       success: true,
       message: '✅ Migration completed successfully!' 

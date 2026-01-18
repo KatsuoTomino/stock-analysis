@@ -17,12 +17,20 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { code, name, purchase_price, shares, purchase_amount } = body;
+    const { code, name, purchase_price, shares, purchase_amount, memo } = body;
 
     // バリデーション
     if (!code || !name || purchase_price === undefined || !shares || purchase_amount === undefined) {
       return NextResponse.json(
         { error: '必須項目が不足しています' },
+        { status: 400 }
+      );
+    }
+
+    // メモのバリデーション（50文字以内）
+    if (memo !== undefined && memo !== null && typeof memo === 'string' && memo.length > 50) {
+      return NextResponse.json(
+        { error: 'メモは50文字以内で入力してください' },
         { status: 400 }
       );
     }
@@ -34,28 +42,36 @@ export async function PUT(
       );
     }
 
-    if (typeof purchase_price !== 'number' || purchase_price <= 0) {
+    if (typeof purchase_price !== 'number' || purchase_price < 0) {
       return NextResponse.json(
-        { error: '取得株価は正の数である必要があります' },
+        { error: '取得株価は0以上の数である必要があります' },
         { status: 400 }
       );
     }
 
-    if (typeof shares !== 'number' || shares <= 0 || !Number.isInteger(shares)) {
+    if (typeof shares !== 'number' || shares < 0 || !Number.isInteger(shares)) {
       return NextResponse.json(
-        { error: '株数は正の整数である必要があります' },
+        { error: '株数は0以上の整数である必要があります' },
         { status: 400 }
       );
     }
 
-    if (typeof purchase_amount !== 'number' || purchase_amount <= 0) {
+    if (typeof purchase_amount !== 'number' || purchase_amount < 0) {
       return NextResponse.json(
-        { error: '取得時金額は正の数である必要があります' },
+        { error: '取得時金額は0以上の数である必要があります' },
         { status: 400 }
       );
     }
 
     // データベースを更新
+    // memoカラムが存在しない場合に備えて、まず追加を試みる
+    try {
+      await sql`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS memo VARCHAR(50) DEFAULT NULL`;
+    } catch (alterError) {
+      // カラムが既に存在する場合は無視
+      console.log('memo column already exists or alter failed:', alterError);
+    }
+
     const result = await sql`
       UPDATE stocks
       SET 
@@ -64,6 +80,7 @@ export async function PUT(
         purchase_price = ${purchase_price},
         shares = ${shares},
         purchase_amount = ${purchase_amount},
+        memo = ${memo !== undefined ? memo : null},
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ${id}
       RETURNING *

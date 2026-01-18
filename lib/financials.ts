@@ -1,6 +1,6 @@
 /**
  * 財務指標取得ライブラリ
- * Yahoo Finance Japan と みんかぶ から財務指標を取得
+ * 株探(Kabutan) → みんかぶ → Yahoo Finance Japan の順でフォールバック
  */
 
 // 財務指標の型定義
@@ -13,7 +13,112 @@ export interface FinancialMetrics {
   roe: number | null;                  // ROE (%)
   eps: number | null;                  // EPS (円)
   bps: number | null;                  // BPS (円)
-  source: 'yahoo' | 'minkabu' | null;
+  source: 'kabutan' | 'minkabu' | 'yahoo' | null;
+}
+
+/**
+ * 株探（Kabutan）から財務指標を取得
+ * 財務指標が見やすく整理されているため、最優先で使用
+ */
+async function getFinancialsFromKabutan(code: string): Promise<FinancialMetrics | null> {
+  try {
+    // 株探の財務ページ
+    const url = `https://kabutan.jp/stock/finance?code=${code}`;
+    console.log(`[株探] 財務指標取得: ${url}`);
+    
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'ja,en-US;q=0.7,en;q=0.3',
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`[株探] HTTPエラー: ${response.status}`);
+      return null;
+    }
+
+    const html = await response.text();
+    
+    const metrics: FinancialMetrics = {
+      dividendPayoutRatio: null,
+      dividendYield: null,
+      equityRatio: null,
+      per: null,
+      pbr: null,
+      roe: null,
+      eps: null,
+      bps: null,
+      source: 'kabutan',
+    };
+
+    // 配当利回りを抽出（%を含む数値）
+    const dividendYieldMatch = html.match(/配当利回り[^0-9]*([0-9]+\.?[0-9]*)\s*%/);
+    if (dividendYieldMatch) {
+      metrics.dividendYield = parseFloat(dividendYieldMatch[1]);
+    }
+
+    // 配当性向を抽出
+    const payoutMatch = html.match(/配当性向[^0-9]*([0-9]+\.?[0-9]*)\s*%/);
+    if (payoutMatch) {
+      metrics.dividendPayoutRatio = parseFloat(payoutMatch[1]);
+    }
+
+    // 自己資本比率を抽出
+    const equityMatch = html.match(/自己資本比率[^0-9]*([0-9]+\.?[0-9]*)\s*%/);
+    if (equityMatch) {
+      metrics.equityRatio = parseFloat(equityMatch[1]);
+    }
+
+    // PERを抽出
+    const perMatch = html.match(/PER[（(]会社予想[)）][^0-9]*([0-9]+\.?[0-9]*)\s*倍/);
+    if (!perMatch) {
+      const perMatch2 = html.match(/PER[^0-9]*([0-9]+\.?[0-9]*)\s*倍/);
+      if (perMatch2) {
+        metrics.per = parseFloat(perMatch2[1]);
+      }
+    } else {
+      metrics.per = parseFloat(perMatch[1]);
+    }
+
+    // PBRを抽出
+    const pbrMatch = html.match(/PBR[^0-9]*([0-9]+\.?[0-9]*)\s*倍/);
+    if (pbrMatch) {
+      metrics.pbr = parseFloat(pbrMatch[1]);
+    }
+
+    // ROEを抽出
+    const roeMatch = html.match(/ROE[^0-9]*([0-9]+\.?[0-9]*)\s*%/);
+    if (roeMatch) {
+      metrics.roe = parseFloat(roeMatch[1]);
+    }
+
+    // EPSを抽出
+    const epsMatch = html.match(/EPS[^0-9]*([0-9,]+\.?[0-9]*)\s*円/);
+    if (epsMatch) {
+      metrics.eps = parseFloat(epsMatch[1].replace(/,/g, ''));
+    }
+
+    // BPSを抽出
+    const bpsMatch = html.match(/BPS[^0-9]*([0-9,]+\.?[0-9]*)\s*円/);
+    if (bpsMatch) {
+      metrics.bps = parseFloat(bpsMatch[1].replace(/,/g, ''));
+    }
+
+    // 値が取得できたかチェック
+    const hasData = Object.values(metrics).some(v => v !== null && v !== 'kabutan');
+    if (!hasData) {
+      console.warn('[株探] データを抽出できませんでした');
+      return null;
+    }
+
+    console.log('[株探] 取得成功:', metrics);
+    return metrics;
+  } catch (error) {
+    console.error('[株探] エラー:', error);
+    return null;
+  }
 }
 
 /**
@@ -198,23 +303,31 @@ async function getFinancialsFromMinkabu(code: string): Promise<FinancialMetrics 
 }
 
 /**
- * 財務指標を取得（Yahoo Finance → みんかぶ の順でフォールバック）
+ * 財務指標を取得（株探 → みんかぶ → Yahoo Finance の順でフォールバック）
  */
 export async function getFinancialMetrics(code: string): Promise<FinancialMetrics | null> {
   console.log(`[財務指標] 取得開始: ${code}`);
   
-  // まずYahoo Finance Japanを試す
-  const yahooData = await getFinancialsFromYahoo(code);
-  if (yahooData) {
-    return yahooData;
+  // まず株探（Kabutan）を試す（最も信頼性が高い）
+  const kabutanData = await getFinancialsFromKabutan(code);
+  if (kabutanData) {
+    return kabutanData;
   }
   
-  console.log('[財務指標] Yahoo Financeから取得できず、みんかぶを試行');
+  console.log('[財務指標] 株探から取得できず、みんかぶを試行');
   
-  // Yahoo Financeで取得できなければみんかぶを試す
+  // 株探で取得できなければみんかぶを試す
   const minkabuData = await getFinancialsFromMinkabu(code);
   if (minkabuData) {
     return minkabuData;
+  }
+  
+  console.log('[財務指標] みんかぶから取得できず、Yahoo Financeを試行');
+  
+  // みんかぶで取得できなければYahoo Financeを試す
+  const yahooData = await getFinancialsFromYahoo(code);
+  if (yahooData) {
+    return yahooData;
   }
   
   console.warn('[財務指標] すべてのソースから取得できませんでした');

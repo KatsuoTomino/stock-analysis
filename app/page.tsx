@@ -12,6 +12,7 @@ interface Stock {
   shares: number;
   purchase_amount: number;
   dividend_amount: number | null;
+  memo: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -76,6 +77,7 @@ export default function Home() {
         purchase_amount: typeof stock.purchase_amount === 'string' 
           ? parseFloat(stock.purchase_amount) 
           : stock.purchase_amount,
+        memo: stock.memo || null, // 明示的にnullを設定
         currentPrice: null,
         priceLoading: false,
         priceError: null,
@@ -594,6 +596,9 @@ export default function Home() {
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                       現在株価配当利回り
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                      メモ
+                    </th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       アクション
                     </th>
@@ -710,6 +715,15 @@ export default function Home() {
                             <span className="text-gray-600">-</span>
                           )}
                         </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
+                          {stock.memo && stock.memo.trim() ? (
+                            <span className="text-gray-900" title={stock.memo}>
+                              {stock.memo}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                           <div className="flex justify-center gap-2">
                             <Link
@@ -774,29 +788,29 @@ export default function Home() {
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <p className="text-gray-700 font-medium">取得株価</p>
-                      <p className="font-semibold">{formatCurrency(stock.purchase_price)}</p>
+                      <p className="text-gray-900 font-semibold">取得株価</p>
+                      <p className="text-gray-900 font-bold text-base">{formatCurrency(stock.purchase_price)}</p>
                     </div>
                     <div>
-                      <p className="text-gray-700 font-medium">現在株価</p>
-                      <p className="font-semibold">
+                      <p className="text-gray-900 font-semibold">現在株価</p>
+                      <p className="text-gray-900 font-bold text-base">
                         {stock.priceLoading ? (
-                          <span className="text-gray-400">取得中...</span>
+                          <span className="text-gray-600">取得中...</span>
                         ) : stock.currentPrice !== null ? (
                           formatCurrency(stock.currentPrice)
                         ) : (
-                          <span className="text-red-500">取得失敗</span>
+                          <span className="text-red-600 font-bold">取得失敗</span>
                         )}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-700 font-medium">株数</p>
-                      <p className="font-semibold">{stock.shares.toLocaleString()}株</p>
+                      <p className="text-gray-900 font-semibold">株数</p>
+                      <p className="text-gray-900 font-bold text-base">{stock.shares.toLocaleString()}株</p>
                     </div>
                     <div>
-                      <p className="text-gray-700 font-medium">現在評価額</p>
-                      <p className="font-semibold">
-                        {currentValue !== null ? formatCurrency(currentValue) : '-'}
+                      <p className="text-gray-900 font-semibold">現在評価額</p>
+                      <p className="text-gray-900 font-bold text-base">
+                        {currentValue !== null ? formatCurrency(currentValue) : <span className="text-gray-600">-</span>}
                       </p>
                     </div>
                     <div>
@@ -829,6 +843,14 @@ export default function Home() {
                         {stock.dividendYieldAtCurrent !== null ? `${stock.dividendYieldAtCurrent.toFixed(2)}%` : '-'}
                       </p>
                     </div>
+                    {stock.memo && stock.memo.trim() && (
+                      <div className="col-span-2">
+                        <p className="text-gray-900 font-semibold mb-1">購入基準メモ</p>
+                        <p className="text-gray-900 text-sm bg-gray-50 p-2 rounded border border-gray-200">
+                          {stock.memo}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

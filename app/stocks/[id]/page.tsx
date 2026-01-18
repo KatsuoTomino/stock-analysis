@@ -14,6 +14,7 @@ interface Stock {
   shares: number;
   purchase_amount: number;
   dividend_amount: number | null;
+  memo: string | null;
 }
 
 interface FinancialData {
@@ -40,11 +41,17 @@ export default function StockDetailPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
     amount: '',
     purchase_price: '',
     shares: '',
+    memo: '',
   });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     fetchStock();
@@ -77,6 +84,7 @@ export default function StockDetailPage() {
         amount: foundStock.dividend_amount ? foundStock.dividend_amount.toString() : '',
         purchase_price: foundStock.purchase_price ? foundStock.purchase_price.toString() : '',
         shares: foundStock.shares ? foundStock.shares.toString() : '',
+        memo: foundStock.memo ? String(foundStock.memo) : '',
       });
       setError(null);
     } catch (err) {
@@ -130,7 +138,7 @@ export default function StockDetailPage() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -185,26 +193,40 @@ export default function StockDetailPage() {
         }
       }
 
-      // 取得株価と株数を更新
-      if (purchasePrice !== null && shares !== null && purchasePrice > 0 && shares > 0) {
-        const purchaseAmount = purchasePrice * shares;
+      // 取得株価と株数を更新（メモも一緒に更新）
+      // purchasePriceまたはsharesが入力されている場合、またはメモが入力されている場合に更新
+      const shouldUpdateStock = 
+        (purchasePrice !== null && purchasePrice >= 0) ||
+        (shares !== null && shares >= 0) ||
+        formData.memo !== undefined;
+
+      if (shouldUpdateStock && stock) {
+        const finalPurchasePrice = purchasePrice !== null && purchasePrice >= 0 
+          ? purchasePrice 
+          : stock.purchase_price || 0;
+        const finalShares = shares !== null && shares >= 0 
+          ? shares 
+          : stock.shares || 0;
+        const purchaseAmount = finalPurchasePrice * finalShares;
+
         const stockResponse = await fetch(`/api/stocks/${id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            code: stock!.code,
-            name: stock!.name,
-            purchase_price: purchasePrice,
-            shares: shares,
+            code: stock.code,
+            name: stock.name,
+            purchase_price: finalPurchasePrice,
+            shares: finalShares,
             purchase_amount: purchaseAmount,
+            memo: formData.memo || null,
           }),
         });
 
         const stockData = await stockResponse.json();
         if (!stockResponse.ok) {
-          throw new Error(stockData.error || '取得株価・株数の更新に失敗しました');
+          throw new Error(stockData.error || '銘柄の更新に失敗しました');
         }
       }
 
@@ -445,82 +467,108 @@ export default function StockDetailPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="purchase_price"
-                className="block text-sm font-medium text-gray-900 mb-2"
+          {!loading && mounted && (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="purchase_price"
+                  className="block text-sm font-medium text-gray-900 mb-2"
+                >
+                  取得株価（円）
+                </label>
+                <input
+                  type="number"
+                  id="purchase_price"
+                  name="purchase_price"
+                  value={formData.purchase_price}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="例: 2500.00"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
+                />
+                <p className="mt-2 text-sm text-gray-700">
+                  1株あたりの取得株価を入力してください。
+                </p>
+              </div>
+              <div>
+                <label
+                  htmlFor="shares"
+                  className="block text-sm font-medium text-gray-900 mb-2"
+                >
+                  取得株数（株）
+                </label>
+                <input
+                  type="number"
+                  id="shares"
+                  name="shares"
+                  value={formData.shares}
+                  onChange={handleChange}
+                  min="0"
+                  step="1"
+                  placeholder="例: 100"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
+                />
+                <p className="mt-2 text-sm text-gray-700">
+                  取得した株数を入力してください。
+                </p>
+              </div>
+              <div>
+                <label
+                  htmlFor="amount"
+                  className="block text-sm font-medium text-gray-900 mb-2"
+                >
+                  配当金額（年間、円）
+                </label>
+                <input
+                  type="number"
+                  id="amount"
+                  name="amount"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="例: 100.00"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
+                />
+                <p className="mt-2 text-sm text-gray-700">
+                  一株あたりの年間配当金額を入力してください。みんかぶの配当ページで確認できます。
+                </p>
+              </div>
+              <div>
+                <label
+                  htmlFor="memo"
+                  className="block text-sm font-medium text-gray-900 mb-2"
+                >
+                  購入基準メモ（50文字以内）
+                </label>
+                <textarea
+                  id="memo"
+                  name="memo"
+                  value={formData.memo}
+                  onChange={handleChange}
+                  maxLength={50}
+                  rows={3}
+                  placeholder="例: 配当利回り3%以上、PER15倍以下を基準に購入"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium resize-none"
+                />
+                <p className="mt-2 text-sm text-gray-700">
+                  購入基準の参考となるメモを入力してください。メインページでも表示されます。
+                  <span className="text-gray-500 ml-2">
+                    ({(formData.memo || '').length}/50文字)
+                  </span>
+                </p>
+              </div>
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
-                取得株価（円）
-              </label>
-              <input
-                type="number"
-                id="purchase_price"
-                name="purchase_price"
-                value={formData.purchase_price}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                placeholder="例: 2500.00"
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
-              />
-              <p className="mt-2 text-sm text-gray-700">
-                1株あたりの取得株価を入力してください。
-              </p>
-            </div>
-            <div>
-              <label
-                htmlFor="shares"
-                className="block text-sm font-medium text-gray-900 mb-2"
-              >
-                取得株数（株）
-              </label>
-              <input
-                type="number"
-                id="shares"
-                name="shares"
-                value={formData.shares}
-                onChange={handleChange}
-                min="0"
-                step="1"
-                placeholder="例: 100"
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
-              />
-              <p className="mt-2 text-sm text-gray-700">
-                取得した株数を入力してください。
-              </p>
-            </div>
-            <div>
-              <label
-                htmlFor="amount"
-                className="block text-sm font-medium text-gray-900 mb-2"
-              >
-                配当金額（年間、円）
-              </label>
-              <input
-                type="number"
-                id="amount"
-                name="amount"
-                value={formData.amount}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                placeholder="例: 100.00"
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
-              />
-              <p className="mt-2 text-sm text-gray-700">
-                一株あたりの年間配当金額を入力してください。みんかぶの配当ページで確認できます。
-              </p>
-            </div>
-            <button
-              type="submit"
-              disabled={saving}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              <Plus size={18} />
-              {saving ? '保存中...' : '情報を更新'}
-            </button>
-          </form>
+                <Plus size={18} />
+                {saving ? '保存中...' : '情報を更新'}
+              </button>
+            </form>
+          )}
         </div>
 
         {/* チャート */}
