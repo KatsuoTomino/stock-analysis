@@ -14,25 +14,20 @@ interface Stock {
   purchase_amount: number;
   dividend_amount: number | null;
   memo: string | null;
+  industry: string | null;
+  payout_ratio: number | null;
   created_at: string;
   updated_at: string;
-}
-
-interface Dividend {
-  id: number;
-  stock_id: number;
-  amount: number;
-  year: number;
-  created_at: string;
 }
 
 interface StockWithPrice extends Stock {
   currentPrice: number | null;
   priceLoading: boolean;
   priceError: string | null;
-      dividendAmount: number | null; // 一株配当（年間、円）
-      dividendYieldAtPurchase: number | null; // 取得株価の配当利回り（%）
-      dividendYieldAtCurrent: number | null; // 現在株価の配当利回り（%）
+  dividendAmount: number | null; // 一株配当（年間、円）
+  dividendYieldAtPurchase: number | null; // 取得株価の配当利回り（%）
+  dividendYieldAtCurrent: number | null; // 現在株価の配当利回り（%）
+  infoLoading: boolean;
 }
 
 export default function Home() {
@@ -84,12 +79,17 @@ export default function Home() {
           ? parseFloat(stock.purchase_amount) 
           : stock.purchase_amount,
         memo: stock.memo || null, // 明示的にnullを設定
+        industry: stock.industry || null,
+        payout_ratio: stock.payout_ratio 
+          ? (typeof stock.payout_ratio === 'string' ? parseFloat(stock.payout_ratio) : stock.payout_ratio)
+          : null,
         currentPrice: null,
         priceLoading: false,
         priceError: null,
         dividendAmount: stock.dividend_amount || null,
         dividendYieldAtPurchase: null,
         dividendYieldAtCurrent: null,
+        infoLoading: false,
       }));
       setStocks(stocksWithPrice);
       setError(null);
@@ -200,9 +200,78 @@ export default function Home() {
       setTimeout(() => {
         fetchDividendInfo(updatedStocks);
       }, 1000);
+      // 株式情報（業種・配当性向）も取得
+      setTimeout(() => {
+        fetchStockInfo(updatedStocks);
+      }, 2000);
     } else {
       console.log('株価が取得できていないため、配当情報の取得をスキップします');
     }
+  };
+
+  const fetchStockInfo = async (stocksList?: StockWithPrice[]) => {
+    const targetStocks = stocksList || stocks;
+    
+    // 業種と配当性向がまだ取得されていない銘柄のみ取得
+    const stocksToFetch = targetStocks.filter(
+      stock => !stock.industry && !stock.payout_ratio && !stock.infoLoading
+    );
+    
+    if (stocksToFetch.length === 0) {
+      console.log('[株式情報取得] 取得が必要な銘柄がありません');
+      return;
+    }
+    
+    console.log(`[株式情報取得] 開始: ${stocksToFetch.length}件の銘柄を取得します`);
+    
+    // 各銘柄の情報を順次取得（レート制限対策）
+    for (const stock of stocksToFetch) {
+      try {
+        // ローディング状態を設定
+        setStocks((prev) =>
+          prev.map((s) =>
+            s.id === stock.id ? { ...s, infoLoading: true } : s
+          )
+        );
+        
+        const response = await fetch(`/api/stocks/${stock.id}/info`);
+        if (response.ok) {
+          const data = await response.json();
+          
+          setStocks((prev) =>
+            prev.map((s) =>
+              s.id === stock.id 
+                ? { 
+                    ...s, 
+                    industry: data.industry, 
+                    payout_ratio: data.payoutRatio,
+                    infoLoading: false 
+                  } 
+                : s
+            )
+          );
+          console.log(`[株式情報取得] 成功: ${stock.code} - 業種: ${data.industry}, 配当性向: ${data.payoutRatio}%`);
+        } else {
+          setStocks((prev) =>
+            prev.map((s) =>
+              s.id === stock.id ? { ...s, infoLoading: false } : s
+            )
+          );
+        }
+      } catch (err) {
+        console.error(`[株式情報取得] エラー: ${stock.code}`, err);
+        setStocks((prev) =>
+          prev.map((s) =>
+            s.id === stock.id ? { ...s, infoLoading: false } : s
+          )
+        );
+      }
+      
+      // レート制限対策: リクエスト間に少し待機
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    console.log('[株式情報取得] 完了');
   };
 
   const fetchDividendInfo = async (stocksList?: StockWithPrice[]) => {
@@ -589,6 +658,9 @@ export default function Home() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       銘柄名
                     </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                      業種
+                    </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                       取得株価
                     </th>
@@ -609,6 +681,9 @@ export default function Home() {
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                       配当金
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                      配当性向
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                       取得株価配当利回り
@@ -647,6 +722,15 @@ export default function Home() {
                           >
                             {stock.name}
                           </Link>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {stock.infoLoading ? (
+                            <span className="text-gray-500">取得中...</span>
+                          ) : stock.industry ? (
+                            <span className="text-gray-900">{stock.industry}</span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                           {stock.purchase_price > 0 ? (
@@ -715,6 +799,17 @@ export default function Home() {
                             </span>
                           ) : (
                             <span className="text-gray-600">-</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-right">
+                          {stock.infoLoading ? (
+                            <span className="text-gray-500">取得中...</span>
+                          ) : stock.payout_ratio !== null && stock.payout_ratio > 0 ? (
+                            <span className={`font-medium ${stock.payout_ratio > 80 ? 'text-red-600' : stock.payout_ratio > 50 ? 'text-yellow-600' : 'text-green-600'}`}>
+                              {stock.payout_ratio.toFixed(1)}%
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
@@ -794,6 +889,9 @@ export default function Home() {
                         {stock.name}
                       </Link>
                       <p className="text-sm text-gray-700">{stock.code}</p>
+                      {stock.industry && (
+                        <p className="text-xs text-gray-500 mt-1">{stock.industry}</p>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -848,6 +946,12 @@ export default function Home() {
                       <p className="text-gray-700 font-medium">配当金</p>
                       <p className={`font-semibold ${stock.dividendAmount !== null && stock.shares > 0 ? 'text-gray-900' : 'text-gray-600'}`}>
                         {stock.dividendAmount !== null && stock.shares > 0 ? formatCurrency(stock.dividendAmount * stock.shares) : '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-700 font-medium">配当性向</p>
+                      <p className={`font-semibold ${stock.payout_ratio !== null && stock.payout_ratio > 0 ? (stock.payout_ratio > 80 ? 'text-red-600' : stock.payout_ratio > 50 ? 'text-yellow-600' : 'text-green-600') : 'text-gray-400'}`}>
+                        {stock.payout_ratio !== null && stock.payout_ratio > 0 ? `${stock.payout_ratio.toFixed(1)}%` : '-'}
                       </p>
                     </div>
                     <div>

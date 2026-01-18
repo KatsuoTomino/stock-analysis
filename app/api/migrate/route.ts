@@ -36,6 +36,24 @@ export async function GET() {
       }
     }
     
+    // industryとpayout_ratioカラムのマイグレーションも実行
+    try {
+      const industryMigrationPath = path.join(process.cwd(), 'lib', 'db', 'migration_add_industry_payout.sql');
+      const industryMigration = fs.readFileSync(industryMigrationPath, 'utf8');
+      const industryStatements = industryMigration
+        .split(';')
+        .filter(stmt => stmt.trim().length > 0);
+      
+      for (const statement of industryStatements) {
+        await sql.query(statement + ';');
+      }
+    } catch (industryError: any) {
+      // カラムが既に存在する場合はエラーを無視
+      if (!industryError?.message?.includes('already exists') && !industryError?.message?.includes('duplicate')) {
+        console.warn('Industry/Payout migration warning:', industryError.message);
+      }
+    }
+    
     return NextResponse.json({ 
       success: true,
       message: '✅ Migration completed successfully!' 
