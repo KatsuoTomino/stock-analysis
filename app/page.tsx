@@ -717,7 +717,18 @@ export default function Home() {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
                           {stock.memo && stock.memo.trim() ? (
-                            <div className="text-gray-900 break-words whitespace-pre-wrap" title={stock.memo} style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+                            <div 
+                              className="text-gray-900 break-words whitespace-pre-wrap" 
+                              title={stock.memo} 
+                              style={{ 
+                                wordBreak: 'break-word', 
+                                whiteSpace: 'pre-wrap',
+                                writingMode: 'horizontal-tb',
+                                textOrientation: 'mixed',
+                                maxWidth: '200px',
+                                lineHeight: '1.5'
+                              }}
+                            >
                               {stock.memo}
                             </div>
                           ) : (
@@ -846,7 +857,17 @@ export default function Home() {
                     {stock.memo && stock.memo.trim() && (
                       <div className="col-span-2">
                         <p className="text-gray-900 font-semibold mb-1">購入基準メモ</p>
-                        <div className="text-gray-900 text-sm bg-gray-50 p-2 rounded border border-gray-200 break-words whitespace-pre-wrap" style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+                        <div 
+                          className="text-gray-900 text-sm bg-gray-50 p-2 rounded border border-gray-200 break-words whitespace-pre-wrap" 
+                          style={{ 
+                            wordBreak: 'break-word', 
+                            whiteSpace: 'pre-wrap',
+                            writingMode: 'horizontal-tb',
+                            textOrientation: 'mixed',
+                            lineHeight: '1.5',
+                            minHeight: '40px'
+                          }}
+                        >
                           {stock.memo}
                         </div>
                       </div>

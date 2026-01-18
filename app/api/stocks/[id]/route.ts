@@ -27,12 +27,24 @@ export async function PUT(
       );
     }
 
-    // メモのバリデーション（50文字以内）
-    if (memo !== undefined && memo !== null && typeof memo === 'string' && memo.length > 50) {
-      return NextResponse.json(
-        { error: 'メモは50文字以内で入力してください' },
-        { status: 400 }
-      );
+    // メモのバリデーションと正規化（50文字以内、空文字列も許可）
+    let finalMemo: string | null = null;
+    if (memo !== undefined && memo !== null) {
+      if (typeof memo !== 'string') {
+        return NextResponse.json(
+          { error: 'メモは文字列である必要があります' },
+          { status: 400 }
+        );
+      }
+      // 50文字を超える場合は50文字に切り詰める（フロントエンドでも制限しているが、念のため）
+      const trimmedMemo = memo.length > 50 ? memo.slice(0, 50) : memo;
+      // 空文字列の場合はnullに変換
+      finalMemo = trimmedMemo.trim() === '' ? null : trimmedMemo;
+      
+      if (memo.length > 50) {
+        // 警告ログを出力（エラーにはしない）
+        console.warn(`メモが50文字を超えています。切り詰めます: ${memo.length}文字 -> 50文字`);
+      }
     }
 
     if (typeof code !== 'string' || code.length !== 4) {
@@ -80,7 +92,7 @@ export async function PUT(
         purchase_price = ${purchase_price},
         shares = ${shares},
         purchase_amount = ${purchase_amount},
-        memo = ${memo !== undefined ? memo : null},
+        memo = ${finalMemo !== undefined ? finalMemo : null},
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ${id}
       RETURNING *

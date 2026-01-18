@@ -140,11 +140,22 @@ export default function StockDetailPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    // メモフィールドの場合は50文字を超えないように制限
-    if (name === 'memo' && value.length > 50) {
-      return; // 50文字を超える場合は入力を無視
+    // メモフィールドの場合は50文字を超えないように制限（コピー&ペーストにも対応）
+    if (name === 'memo') {
+      const limitedValue = value.slice(0, 50); // 50文字に制限
+      setFormData((prev) => ({ ...prev, [name]: limitedValue }));
+      return;
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    // メモフィールドでのペースト時も50文字に制限
+    if (e.currentTarget.name === 'memo') {
+      e.preventDefault();
+      const pastedText = e.clipboardData.getData('text').slice(0, 50);
+      setFormData((prev) => ({ ...prev, memo: pastedText }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -551,6 +562,7 @@ export default function StockDetailPage() {
                   name="memo"
                   value={formData.memo}
                   onChange={handleChange}
+                  onPaste={handlePaste}
                   maxLength={50}
                   rows={3}
                   placeholder="例: 配当利回り3%以上、PER15倍以下を基準に購入"
