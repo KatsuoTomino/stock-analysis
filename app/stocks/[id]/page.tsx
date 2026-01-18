@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Plus, ExternalLink } from 'lucide-react';
@@ -102,25 +102,54 @@ export default function StockDetailPage() {
   };
 
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    // メモフィールドの場合は50文字を超えないように制限（コピー&ペーストにも対応）
-    if (name === 'memo') {
-      const limitedValue = value.slice(0, 50); // 50文字に制限
-      setFormData((prev) => ({ ...prev, [name]: limitedValue }));
-      return;
+    try {
+      // メモフィールドの場合は50文字を超えないように制限（コピー&ペーストにも対応）
+      if (name === 'memo') {
+        const limitedValue = value.slice(0, 50); // 50文字に制限
+        setFormData((prev) => {
+          // 前の値と同じ場合は更新をスキップ（不要な再レンダリングを防ぐ）
+          if (prev.memo === limitedValue) {
+            return prev;
+          }
+          return { ...prev, [name]: limitedValue };
+        });
+        return;
+      }
+      setFormData((prev) => {
+        // 前の値と同じ場合は更新をスキップ
+        const prevValue = prev[name as keyof typeof prev];
+        if (prevValue === value) {
+          return prev;
+        }
+        return { ...prev, [name]: value };
+      });
+    } catch (error) {
+      console.error('入力処理エラー:', error);
+      // エラーが発生してもアプリケーションがクラッシュしないようにする
     }
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    // メモフィールドでのペースト時も50文字に制限
-    if (e.currentTarget.name === 'memo') {
-      e.preventDefault();
-      const pastedText = e.clipboardData.getData('text').slice(0, 50);
-      setFormData((prev) => ({ ...prev, memo: pastedText }));
+  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    try {
+      // メモフィールドでのペースト時も50文字に制限
+      if (e.currentTarget.name === 'memo') {
+        e.preventDefault();
+        const pastedText = e.clipboardData.getData('text').slice(0, 50);
+        setFormData((prev) => {
+          // 前の値と同じ場合は更新をスキップ
+          if (prev.memo === pastedText) {
+            return prev;
+          }
+          return { ...prev, memo: pastedText };
+        });
+      }
+    } catch (error) {
+      console.error('ペースト処理エラー:', error);
+      // エラーが発生してもアプリケーションがクラッシュしないようにする
     }
-  };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
