@@ -140,6 +140,10 @@ export default function StockDetailPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    // メモフィールドの場合は50文字を超えないように制限
+    if (name === 'memo' && value.length > 50) {
+      return; // 50文字を超える場合は入力を無視
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
