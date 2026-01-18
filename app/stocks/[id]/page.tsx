@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Plus, ExternalLink } from 'lucide-react';
@@ -102,7 +102,7 @@ export default function StockDetailPage() {
   };
 
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     try {
       // メモフィールドの場合は50文字を超えないように制限（コピー&ペーストにも対応）
@@ -116,9 +116,9 @@ export default function StockDetailPage() {
       console.error('入力処理エラー:', error);
       // エラーが発生してもアプリケーションがクラッシュしないようにする
     }
-  }, []);
+  };
 
-  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     try {
       // メモフィールドでのペースト時も50文字に制限
       if (e.currentTarget.name === 'memo') {
@@ -130,7 +130,7 @@ export default function StockDetailPage() {
       console.error('ペースト処理エラー:', error);
       // エラーが発生してもアプリケーションがクラッシュしないようにする
     }
-  }, []);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

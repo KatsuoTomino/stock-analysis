@@ -154,6 +154,7 @@ export default function StockChart({ stockId, stockCode, stockName }: StockChart
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 6 }}
+              isAnimationActive={false}
             />
           </LineChart>
         </ResponsiveContainer>
