@@ -24,6 +24,25 @@ ANTHROPIC_API_KEY=your_anthropic_api_key
 
 # J-Quants API（配当情報取得用、オプション）
 JQUANTS_REFRESH_TOKEN=your_refresh_token
+
+# 認証設定（必須）
+AUTH_USERNAME=your_username
+AUTH_PASSWORD=your_password
+NEXTAUTH_SECRET=your_secret_key_minimum_32_characters
+```
+
+### 認証設定について
+
+- `AUTH_USERNAME`: ログインに使用するユーザー名（デフォルト: `admin`）
+- `AUTH_PASSWORD`: ログインに使用するパスワード（デフォルト: `password`）
+- `NEXTAUTH_SECRET`: NextAuth.jsのシークレットキー（32文字以上推奨）
+
+**重要**: 本番環境では必ず強力なパスワードとシークレットキーを設定してください。
+
+シークレットキーを生成するには、以下のコマンドを実行してください：
+
+```bash
+openssl rand -base64 32
 ```
 
 ### J-Quants APIの設定（オプション）

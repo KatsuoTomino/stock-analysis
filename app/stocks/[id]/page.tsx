@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Plus, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Plus, ExternalLink, LogOut } from 'lucide-react';
+import { signOut, useSession } from 'next-auth/react';
 import StockChart from '@/components/StockChart';
 
 interface Stock {
@@ -304,13 +305,22 @@ export default function StockDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft size={20} />
-          一覧に戻る
-        </Link>
+        <div className="flex justify-between items-center mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft size={20} />
+            一覧に戻る
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            <LogOut size={18} />
+            ログアウト
+          </button>
+        </div>
 
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">

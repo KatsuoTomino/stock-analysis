@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Trash2, TrendingUp, BarChart3 } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, BarChart3, LogOut } from 'lucide-react';
+import { signOut, useSession } from 'next-auth/react';
 
 interface Stock {
   id: number;
@@ -417,6 +418,20 @@ export default function Home() {
               </h1>
               <p className="text-sm text-gray-600 mt-1">ポートフォリオ管理システム</p>
             </div>
+          </div>
+          <div className="flex items-center gap-4">
+            {session && (
+              <div className="text-sm text-gray-600">
+                <span className="font-medium">{session.user?.name}</span> としてログイン中
+              </div>
+            )}
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              <LogOut size={18} />
+              ログアウト
+            </button>
           </div>
         </div>
 
