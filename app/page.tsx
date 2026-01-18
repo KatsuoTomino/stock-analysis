@@ -596,7 +596,7 @@ export default function Home() {
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                       現在株価配当利回り
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider" style={{ minWidth: '250px', maxWidth: '300px' }}>
                       メモ
                     </th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
@@ -715,18 +715,20 @@ export default function Home() {
                             <span className="text-gray-600">-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
+                        <td className="px-4 py-4 text-sm text-gray-900" style={{ minWidth: '250px', maxWidth: '300px' }}>
                           {stock.memo && stock.memo.trim() ? (
                             <div 
-                              className="text-gray-900 break-words whitespace-pre-wrap" 
+                              className="text-gray-900 break-words" 
                               title={stock.memo} 
                               style={{ 
                                 wordBreak: 'break-word', 
-                                whiteSpace: 'pre-wrap',
+                                whiteSpace: 'normal',
                                 writingMode: 'horizontal-tb',
                                 textOrientation: 'mixed',
-                                maxWidth: '200px',
-                                lineHeight: '1.5'
+                                lineHeight: '1.6',
+                                display: 'block',
+                                overflowWrap: 'break-word',
+                                wordWrap: 'break-word'
                               }}
                             >
                               {stock.memo}
@@ -858,14 +860,16 @@ export default function Home() {
                       <div className="col-span-2">
                         <p className="text-gray-900 font-semibold mb-1">購入基準メモ</p>
                         <div 
-                          className="text-gray-900 text-sm bg-gray-50 p-2 rounded border border-gray-200 break-words whitespace-pre-wrap" 
+                          className="text-gray-900 text-sm bg-gray-50 p-3 rounded border border-gray-200 break-words" 
                           style={{ 
                             wordBreak: 'break-word', 
-                            whiteSpace: 'pre-wrap',
+                            whiteSpace: 'normal',
                             writingMode: 'horizontal-tb',
                             textOrientation: 'mixed',
-                            lineHeight: '1.5',
-                            minHeight: '40px'
+                            lineHeight: '1.6',
+                            display: 'block',
+                            overflowWrap: 'break-word',
+                            wordWrap: 'break-word'
                           }}
                         >
                           {stock.memo}
