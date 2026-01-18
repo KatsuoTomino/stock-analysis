@@ -890,6 +890,88 @@ export default function Home() {
           </>
         )}
       </div>
+
+      {/* フッター */}
+      <footer className="bg-gray-900 text-gray-300 mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* アプリケーション情報 */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg p-2">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Tomikawa Finance</h3>
+              </div>
+              <p className="text-sm text-gray-400">
+                ポートフォリオ管理システム
+              </p>
+              <p className="text-sm text-gray-400 mt-2">
+                日本株の銘柄管理と配当情報の追跡を簡単に
+              </p>
+            </div>
+
+            {/* 機能 */}
+            <div>
+              <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+                主な機能
+              </h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <span className="text-gray-400">✓ リアルタイム株価取得</span>
+                </li>
+                <li>
+                  <span className="text-gray-400">✓ 配当情報管理</span>
+                </li>
+                <li>
+                  <span className="text-gray-400">✓ 損益計算</span>
+                </li>
+                <li>
+                  <span className="text-gray-400">✓ ポートフォリオ分析</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* 技術スタック */}
+            <div>
+              <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+                技術スタック
+              </h4>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <span className="text-gray-400">Next.js 16</span>
+                </li>
+                <li>
+                  <span className="text-gray-400">React 19</span>
+                </li>
+                <li>
+                  <span className="text-gray-400">TypeScript</span>
+                </li>
+                <li>
+                  <span className="text-gray-400">Tailwind CSS</span>
+                </li>
+                <li>
+                  <span className="text-gray-400">Vercel Postgres</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* コピーライト */}
+          <div className="border-t border-gray-800 mt-8 pt-6">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <p className="text-sm text-gray-400">
+                © {new Date().getFullYear()} Tomikawa Finance. All rights reserved.
+              </p>
+              <div className="flex items-center gap-4 mt-4 md:mt-0">
+                <span className="text-xs text-gray-500">
+                  Built with ❤️ using Next.js
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
