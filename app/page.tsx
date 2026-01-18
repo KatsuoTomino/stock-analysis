@@ -36,6 +36,7 @@ interface StockWithPrice extends Stock {
 }
 
 export default function Home() {
+  const { data: session } = useSession();
   const [stocks, setStocks] = useState<StockWithPrice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +45,10 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [newStockCode, setNewStockCode] = useState('');
   const [registering, setRegistering] = useState(false);
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/login' });
+  };
 
   useEffect(() => {
     fetchStocks();
