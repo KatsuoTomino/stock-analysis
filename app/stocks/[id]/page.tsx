@@ -22,6 +22,7 @@ interface Stock {
 export default function StockDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const id = params.id as string;
   const [stock, setStock] = useState<Stock | null>(null);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
@@ -38,6 +39,10 @@ export default function StockDetailPage() {
     memo: '',
   });
   const isSubmittingRef = useRef(false);
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/login' });
+  };
 
   useEffect(() => {
     setMounted(true);
