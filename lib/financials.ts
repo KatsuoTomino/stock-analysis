@@ -53,67 +53,142 @@ async function getFinancialsFromKabutan(code: string): Promise<FinancialMetrics 
       source: 'kabutan',
     };
 
-    // 配当利回りを抽出（%を含む数値）
-    const dividendYieldMatch = html.match(/配当利回り[^0-9]*([0-9]+\.?[0-9]*)\s*%/);
-    if (dividendYieldMatch) {
-      metrics.dividendYield = parseFloat(dividendYieldMatch[1]);
-    }
-
-    // 配当性向を抽出
-    const payoutMatch = html.match(/配当性向[^0-9]*([0-9]+\.?[0-9]*)\s*%/);
-    if (payoutMatch) {
-      metrics.dividendPayoutRatio = parseFloat(payoutMatch[1]);
-    }
-
-    // 自己資本比率を抽出
-    const equityMatch = html.match(/自己資本比率[^0-9]*([0-9]+\.?[0-9]*)\s*%/);
-    if (equityMatch) {
-      metrics.equityRatio = parseFloat(equityMatch[1]);
-    }
-
-    // PERを抽出
-    const perMatch = html.match(/PER[（(]会社予想[)）][^0-9]*([0-9]+\.?[0-9]*)\s*倍/);
-    if (!perMatch) {
-      const perMatch2 = html.match(/PER[^0-9]*([0-9]+\.?[0-9]*)\s*倍/);
-      if (perMatch2) {
-        metrics.per = parseFloat(perMatch2[1]);
+    // 配当利回りを抽出（複数のパターンを試す）
+    const dividendYieldPatterns = [
+      /配当利回り[^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /配当利回り[（(]会社予想[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /配当利回り[（(]実績[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /配当利回り[\s\S]*?([0-9]+\.?[0-9]*)\s*%/,
+    ];
+    for (const pattern of dividendYieldPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.dividendYield = parseFloat(match[1]);
+        break;
       }
-    } else {
-      metrics.per = parseFloat(perMatch[1]);
     }
 
-    // PBRを抽出
-    const pbrMatch = html.match(/PBR[^0-9]*([0-9]+\.?[0-9]*)\s*倍/);
-    if (pbrMatch) {
-      metrics.pbr = parseFloat(pbrMatch[1]);
+    // 配当性向を抽出（複数のパターンを試す）
+    const payoutPatterns = [
+      /配当性向[^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /配当性向[（(]会社予想[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /配当性向[（(]実績[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /配当性向[\s\S]*?([0-9]+\.?[0-9]*)\s*%/,
+    ];
+    for (const pattern of payoutPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.dividendPayoutRatio = parseFloat(match[1]);
+        break;
+      }
     }
 
-    // ROEを抽出
-    const roeMatch = html.match(/ROE[^0-9]*([0-9]+\.?[0-9]*)\s*%/);
-    if (roeMatch) {
-      metrics.roe = parseFloat(roeMatch[1]);
+    // 自己資本比率を抽出（複数のパターンを試す）
+    const equityPatterns = [
+      /自己資本比率[^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /自己資本比率[（(]会社予想[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /自己資本比率[（(]実績[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /自己資本比率[\s\S]*?([0-9]+\.?[0-9]*)\s*%/,
+    ];
+    for (const pattern of equityPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.equityRatio = parseFloat(match[1]);
+        break;
+      }
     }
 
-    // EPSを抽出
-    const epsMatch = html.match(/EPS[^0-9]*([0-9,]+\.?[0-9]*)\s*円/);
-    if (epsMatch) {
-      metrics.eps = parseFloat(epsMatch[1].replace(/,/g, ''));
+    // PERを抽出（複数のパターンを試す）
+    const perPatterns = [
+      /PER[（(]会社予想[）)][^0-9]*([0-9]+\.?[0-9]*)\s*倍/,
+      /PER[（(]実績[）)][^0-9]*([0-9]+\.?[0-9]*)\s*倍/,
+      /PER[^0-9]*([0-9]+\.?[0-9]*)\s*倍/,
+      /PER[\s\S]*?([0-9]+\.?[0-9]*)\s*倍/,
+    ];
+    for (const pattern of perPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.per = parseFloat(match[1]);
+        break;
+      }
     }
 
-    // BPSを抽出
-    const bpsMatch = html.match(/BPS[^0-9]*([0-9,]+\.?[0-9]*)\s*円/);
-    if (bpsMatch) {
-      metrics.bps = parseFloat(bpsMatch[1].replace(/,/g, ''));
+    // PBRを抽出（複数のパターンを試す）
+    const pbrPatterns = [
+      /PBR[（(]会社予想[）)][^0-9]*([0-9]+\.?[0-9]*)\s*倍/,
+      /PBR[（(]実績[）)][^0-9]*([0-9]+\.?[0-9]*)\s*倍/,
+      /PBR[^0-9]*([0-9]+\.?[0-9]*)\s*倍/,
+      /PBR[\s\S]*?([0-9]+\.?[0-9]*)\s*倍/,
+    ];
+    for (const pattern of pbrPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.pbr = parseFloat(match[1]);
+        break;
+      }
     }
 
-    // 値が取得できたかチェック
-    const hasData = Object.values(metrics).some(v => v !== null && v !== 'kabutan');
+    // ROEを抽出（複数のパターンを試す）
+    const roePatterns = [
+      /ROE[（(]会社予想[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /ROE[（(]実績[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /ROE[^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /ROE[\s\S]*?([0-9]+\.?[0-9]*)\s*%/,
+    ];
+    for (const pattern of roePatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.roe = parseFloat(match[1]);
+        break;
+      }
+    }
+
+    // EPSを抽出（複数のパターンを試す）
+    const epsPatterns = [
+      /EPS[（(]会社予想[）)][^0-9,]*([0-9,]+\.?[0-9]*)\s*円/,
+      /EPS[（(]実績[）)][^0-9,]*([0-9,]+\.?[0-9]*)\s*円/,
+      /EPS[^0-9,]*([0-9,]+\.?[0-9]*)\s*円/,
+      /EPS[\s\S]*?([0-9,]+\.?[0-9]*)\s*円/,
+    ];
+    for (const pattern of epsPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.eps = parseFloat(match[1].replace(/,/g, ''));
+        break;
+      }
+    }
+
+    // BPSを抽出（複数のパターンを試す）
+    const bpsPatterns = [
+      /BPS[（(]会社予想[）)][^0-9,]*([0-9,]+\.?[0-9]*)\s*円/,
+      /BPS[（(]実績[）)][^0-9,]*([0-9,]+\.?[0-9]*)\s*円/,
+      /BPS[^0-9,]*([0-9,]+\.?[0-9]*)\s*円/,
+      /BPS[\s\S]*?([0-9,]+\.?[0-9]*)\s*円/,
+    ];
+    for (const pattern of bpsPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.bps = parseFloat(match[1].replace(/,/g, ''));
+        break;
+      }
+    }
+
+    // 値が取得できたかチェック（sourceを除く）
+    const hasData = metrics.dividendPayoutRatio !== null || 
+                    metrics.dividendYield !== null || 
+                    metrics.equityRatio !== null || 
+                    metrics.per !== null || 
+                    metrics.pbr !== null || 
+                    metrics.roe !== null || 
+                    metrics.eps !== null || 
+                    metrics.bps !== null;
+    
     if (!hasData) {
       console.warn('[株探] データを抽出できませんでした');
       return null;
     }
 
-    console.log('[株探] 取得成功:', metrics);
+    console.log('[株探] 取得成功:', JSON.stringify(metrics, null, 2));
     return metrics;
   } catch (error) {
     console.error('[株探] エラー:', error);
@@ -188,14 +263,22 @@ async function getFinancialsFromYahoo(code: string): Promise<FinancialMetrics | 
       metrics.bps = parseFloat(bpsMatch[1].replace(/,/g, ''));
     }
 
-    // 値が取得できたかチェック
-    const hasData = Object.values(metrics).some(v => v !== null && v !== 'yahoo');
+    // 値が取得できたかチェック（sourceを除く）
+    const hasData = metrics.dividendPayoutRatio !== null || 
+                    metrics.dividendYield !== null || 
+                    metrics.equityRatio !== null || 
+                    metrics.per !== null || 
+                    metrics.pbr !== null || 
+                    metrics.roe !== null || 
+                    metrics.eps !== null || 
+                    metrics.bps !== null;
+    
     if (!hasData) {
       console.warn('[Yahoo Finance] データを抽出できませんでした');
       return null;
     }
 
-    console.log('[Yahoo Finance] 取得成功:', metrics);
+    console.log('[Yahoo Finance] 取得成功:', JSON.stringify(metrics, null, 2));
     return metrics;
   } catch (error) {
     console.error('[Yahoo Finance] エラー:', error);
@@ -239,62 +322,142 @@ async function getFinancialsFromMinkabu(code: string): Promise<FinancialMetrics 
       source: 'minkabu',
     };
 
-    // 配当性向を抽出
-    const payoutMatch = html.match(/配当性向[\s\S]*?([0-9.]+)\s*%/);
-    if (payoutMatch) {
-      metrics.dividendPayoutRatio = parseFloat(payoutMatch[1]);
+    // 配当性向を抽出（複数のパターンを試す）
+    const payoutPatterns = [
+      /配当性向[^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /配当性向[（(]会社予想[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /配当性向[（(]実績[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /配当性向[\s\S]*?([0-9]+\.?[0-9]*)\s*%/,
+    ];
+    for (const pattern of payoutPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.dividendPayoutRatio = parseFloat(match[1]);
+        break;
+      }
     }
 
-    // 配当利回りを抽出
-    const dividendYieldMatch = html.match(/配当利回り[\s\S]*?([0-9.]+)\s*%/);
-    if (dividendYieldMatch) {
-      metrics.dividendYield = parseFloat(dividendYieldMatch[1]);
+    // 配当利回りを抽出（複数のパターンを試す）
+    const dividendYieldPatterns = [
+      /配当利回り[^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /配当利回り[（(]会社予想[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /配当利回り[（(]実績[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /配当利回り[\s\S]*?([0-9]+\.?[0-9]*)\s*%/,
+    ];
+    for (const pattern of dividendYieldPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.dividendYield = parseFloat(match[1]);
+        break;
+      }
     }
 
-    // 自己資本比率を抽出
-    const equityMatch = html.match(/自己資本比率[\s\S]*?([0-9.]+)\s*%/);
-    if (equityMatch) {
-      metrics.equityRatio = parseFloat(equityMatch[1]);
+    // 自己資本比率を抽出（複数のパターンを試す）
+    const equityPatterns = [
+      /自己資本比率[^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /自己資本比率[（(]会社予想[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /自己資本比率[（(]実績[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /自己資本比率[\s\S]*?([0-9]+\.?[0-9]*)\s*%/,
+    ];
+    for (const pattern of equityPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.equityRatio = parseFloat(match[1]);
+        break;
+      }
     }
 
-    // PERを抽出
-    const perMatch = html.match(/PER[\s\S]*?([0-9.]+)\s*倍/);
-    if (perMatch) {
-      metrics.per = parseFloat(perMatch[1]);
+    // PERを抽出（複数のパターンを試す）
+    const perPatterns = [
+      /PER[（(]会社予想[）)][^0-9]*([0-9]+\.?[0-9]*)\s*倍/,
+      /PER[（(]実績[）)][^0-9]*([0-9]+\.?[0-9]*)\s*倍/,
+      /PER[^0-9]*([0-9]+\.?[0-9]*)\s*倍/,
+      /PER[\s\S]*?([0-9]+\.?[0-9]*)\s*倍/,
+    ];
+    for (const pattern of perPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.per = parseFloat(match[1]);
+        break;
+      }
     }
 
-    // PBRを抽出
-    const pbrMatch = html.match(/PBR[\s\S]*?([0-9.]+)\s*倍/);
-    if (pbrMatch) {
-      metrics.pbr = parseFloat(pbrMatch[1]);
+    // PBRを抽出（複数のパターンを試す）
+    const pbrPatterns = [
+      /PBR[（(]会社予想[）)][^0-9]*([0-9]+\.?[0-9]*)\s*倍/,
+      /PBR[（(]実績[）)][^0-9]*([0-9]+\.?[0-9]*)\s*倍/,
+      /PBR[^0-9]*([0-9]+\.?[0-9]*)\s*倍/,
+      /PBR[\s\S]*?([0-9]+\.?[0-9]*)\s*倍/,
+    ];
+    for (const pattern of pbrPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.pbr = parseFloat(match[1]);
+        break;
+      }
     }
 
-    // ROEを抽出
-    const roeMatch = html.match(/ROE[\s\S]*?([0-9.]+)\s*%/);
-    if (roeMatch) {
-      metrics.roe = parseFloat(roeMatch[1]);
+    // ROEを抽出（複数のパターンを試す）
+    const roePatterns = [
+      /ROE[（(]会社予想[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /ROE[（(]実績[）)][^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /ROE[^0-9]*([0-9]+\.?[0-9]*)\s*%/,
+      /ROE[\s\S]*?([0-9]+\.?[0-9]*)\s*%/,
+    ];
+    for (const pattern of roePatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.roe = parseFloat(match[1]);
+        break;
+      }
     }
 
-    // EPSを抽出
-    const epsMatch = html.match(/EPS[\s\S]*?([0-9,.]+)\s*円/);
-    if (epsMatch) {
-      metrics.eps = parseFloat(epsMatch[1].replace(/,/g, ''));
+    // EPSを抽出（複数のパターンを試す）
+    const epsPatterns = [
+      /EPS[（(]会社予想[）)][^0-9,]*([0-9,]+\.?[0-9]*)\s*円/,
+      /EPS[（(]実績[）)][^0-9,]*([0-9,]+\.?[0-9]*)\s*円/,
+      /EPS[^0-9,]*([0-9,]+\.?[0-9]*)\s*円/,
+      /EPS[\s\S]*?([0-9,]+\.?[0-9]*)\s*円/,
+    ];
+    for (const pattern of epsPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.eps = parseFloat(match[1].replace(/,/g, ''));
+        break;
+      }
     }
 
-    // BPSを抽出
-    const bpsMatch = html.match(/BPS[\s\S]*?([0-9,.]+)\s*円/);
-    if (bpsMatch) {
-      metrics.bps = parseFloat(bpsMatch[1].replace(/,/g, ''));
+    // BPSを抽出（複数のパターンを試す）
+    const bpsPatterns = [
+      /BPS[（(]会社予想[）)][^0-9,]*([0-9,]+\.?[0-9]*)\s*円/,
+      /BPS[（(]実績[）)][^0-9,]*([0-9,]+\.?[0-9]*)\s*円/,
+      /BPS[^0-9,]*([0-9,]+\.?[0-9]*)\s*円/,
+      /BPS[\s\S]*?([0-9,]+\.?[0-9]*)\s*円/,
+    ];
+    for (const pattern of bpsPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        metrics.bps = parseFloat(match[1].replace(/,/g, ''));
+        break;
+      }
     }
 
-    // 値が取得できたかチェック
-    const hasData = Object.values(metrics).some(v => v !== null && v !== 'minkabu');
+    // 値が取得できたかチェック（sourceを除く）
+    const hasData = metrics.dividendPayoutRatio !== null || 
+                    metrics.dividendYield !== null || 
+                    metrics.equityRatio !== null || 
+                    metrics.per !== null || 
+                    metrics.pbr !== null || 
+                    metrics.roe !== null || 
+                    metrics.eps !== null || 
+                    metrics.bps !== null;
+    
     if (!hasData) {
       console.warn('[みんかぶ] データを抽出できませんでした');
       return null;
     }
 
-    console.log('[みんかぶ] 取得成功:', metrics);
+    console.log('[みんかぶ] 取得成功:', JSON.stringify(metrics, null, 2));
     return metrics;
   } catch (error) {
     console.error('[みんかぶ] エラー:', error);

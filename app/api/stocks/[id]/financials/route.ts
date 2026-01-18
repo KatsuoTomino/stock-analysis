@@ -39,19 +39,46 @@ export async function GET(
 
     const stock = stocks[0];
 
-    // Yahoo Finance / みんかぶ から財務指標を取得
-    const metrics = await getFinancialMetrics(stock.code);
-
-    if (!metrics) {
+    // 財務指標を取得（株探 → みんかぶ → Yahoo Finance の順でフォールバック）
+    console.log(`[財務指標API] 取得開始: ${stock.code} (${stock.name})`);
+    
+    let metrics;
+    try {
+      // タイムアウトを設定（30秒）
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('タイムアウト: 財務指標の取得に30秒以上かかりました')), 30000)
+      );
+      
+      metrics = await Promise.race([
+        getFinancialMetrics(stock.code),
+        timeoutPromise
+      ]);
+    } catch (error) {
+      console.error(`[財務指標API] エラー: ${stock.code}`, error);
       return NextResponse.json({
         success: false,
         stockId: stock.id,
         code: stock.code,
         name: stock.name,
-        message: '財務指標を取得できませんでした',
+        message: '財務指標の取得中にエラーが発生しました',
+        error: error instanceof Error ? error.message : String(error),
         financials: null,
       });
     }
+
+    if (!metrics) {
+      console.warn(`[財務指標API] 取得失敗: ${stock.code} (${stock.name})`);
+      return NextResponse.json({
+        success: false,
+        stockId: stock.id,
+        code: stock.code,
+        name: stock.name,
+        message: '財務指標を取得できませんでした。しばらく時間をおいて再度お試しください。',
+        financials: null,
+      });
+    }
+
+    console.log(`[財務指標API] 取得成功: ${stock.code} (${stock.name}) - ソース: ${metrics.source}`);
 
     return NextResponse.json({
       success: true,
