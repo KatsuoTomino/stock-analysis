@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, TrendingUp, BarChart3 } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, BarChart3 } from 'lucide-react';
 
 interface Stock {
   id: number;
@@ -600,7 +600,7 @@ export default function Home() {
                       メモ
                     </th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      アクション
+                      削除
                     </th>
                   </tr>
                 </thead>
@@ -739,13 +739,6 @@ export default function Home() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                           <div className="flex justify-center gap-2">
-                            <Link
-                              href={`/stocks/${stock.id}/edit`}
-                              className="text-blue-600 hover:text-blue-900"
-                              title="編集"
-                            >
-                              <Edit size={18} />
-                            </Link>
                             <button
                               onClick={() => handleDelete(stock.id)}
                               className="text-red-600 hover:text-red-900"
@@ -783,13 +776,6 @@ export default function Home() {
                       <p className="text-sm text-gray-700">{stock.code}</p>
                     </div>
                     <div className="flex gap-2">
-                      <Link
-                        href={`/stocks/${stock.id}/edit`}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="編集"
-                      >
-                        <Edit size={18} />
-                      </Link>
                       <button
                         onClick={() => handleDelete(stock.id)}
                         className="text-red-600 hover:text-red-900"
