@@ -1,16 +1,29 @@
-import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-export default withAuth(
-  function middleware(req) {
+export function middleware(request: NextRequest) {
+  // セッションクッキーを確認
+  const sessionToken = request.cookies.get('next-auth.session-token') || 
+                       request.cookies.get('__Secure-next-auth.session-token');
+
+  // ログインページは常にアクセス可能
+  if (request.nextUrl.pathname === '/login') {
+    if (sessionToken) {
+      // 既にログインしている場合はメインページにリダイレクト
+      return NextResponse.redirect(new URL('/', request.url));
+    }
     return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token,
-    },
   }
-);
+
+  // 保護されたパスでセッションがない場合はログインページにリダイレクト
+  if (!sessionToken) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('callbackUrl', request.nextUrl.pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
