@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Plus, ExternalLink } from 'lucide-react';
@@ -36,6 +36,7 @@ export default function StockDetailPage() {
     shares: '',
     memo: '',
   });
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -123,6 +124,14 @@ export default function StockDetailPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 既に保存中の場合は処理をスキップ（連続クリック防止）
+    if (saving || isSubmittingRef.current) {
+      console.log('保存処理が既に実行中です。スキップします。');
+      return;
+    }
+    
+    isSubmittingRef.current = true;
     setSaving(true);
     setError(null);
     setSuccessMessage(null);
@@ -226,6 +235,7 @@ export default function StockDetailPage() {
       setSuccessMessage(null);
     } finally {
       setSaving(false);
+      isSubmittingRef.current = false;
     }
   };
 
