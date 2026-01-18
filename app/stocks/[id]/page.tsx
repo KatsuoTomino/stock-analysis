@@ -108,23 +108,10 @@ export default function StockDetailPage() {
       // メモフィールドの場合は50文字を超えないように制限（コピー&ペーストにも対応）
       if (name === 'memo') {
         const limitedValue = value.slice(0, 50); // 50文字に制限
-        setFormData((prev) => {
-          // 前の値と同じ場合は更新をスキップ（不要な再レンダリングを防ぐ）
-          if (prev.memo === limitedValue) {
-            return prev;
-          }
-          return { ...prev, [name]: limitedValue };
-        });
+        setFormData((prev) => ({ ...prev, [name]: limitedValue }));
         return;
       }
-      setFormData((prev) => {
-        // 前の値と同じ場合は更新をスキップ
-        const prevValue = prev[name as keyof typeof prev];
-        if (prevValue === value) {
-          return prev;
-        }
-        return { ...prev, [name]: value };
-      });
+      setFormData((prev) => ({ ...prev, [name]: value }));
     } catch (error) {
       console.error('入力処理エラー:', error);
       // エラーが発生してもアプリケーションがクラッシュしないようにする
@@ -137,13 +124,7 @@ export default function StockDetailPage() {
       if (e.currentTarget.name === 'memo') {
         e.preventDefault();
         const pastedText = e.clipboardData.getData('text').slice(0, 50);
-        setFormData((prev) => {
-          // 前の値と同じ場合は更新をスキップ
-          if (prev.memo === pastedText) {
-            return prev;
-          }
-          return { ...prev, memo: pastedText };
-        });
+        setFormData((prev) => ({ ...prev, memo: pastedText }));
       }
     } catch (error) {
       console.error('ペースト処理エラー:', error);
