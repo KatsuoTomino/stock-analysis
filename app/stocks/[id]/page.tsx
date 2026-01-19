@@ -213,9 +213,13 @@ export default function StockDetailPage() {
       
       // 業種と配当性向の処理
       const industry = formData.industry?.trim() || null;
-      const payoutRatio = formData.payout_ratio 
-        ? (parseFloat(formData.payout_ratio) >= 0 ? parseFloat(formData.payout_ratio) : null)
-        : null;
+      let payoutRatio: number | null = null;
+      if (formData.payout_ratio && formData.payout_ratio.trim() !== '') {
+        const parsed = parseFloat(formData.payout_ratio);
+        if (!isNaN(parsed) && parsed >= 0 && parsed <= 100) {
+          payoutRatio = parsed;
+        }
+      }
 
       if (stock) {
         const stockResponse = await fetch(`/api/stocks/${id}`, {
@@ -237,7 +241,9 @@ export default function StockDetailPage() {
 
         const stockData = await stockResponse.json();
         if (!stockResponse.ok) {
-          throw new Error(stockData.error || '銘柄の更新に失敗しました');
+          const errorMsg = stockData.error || '銘柄の更新に失敗しました';
+          const details = stockData.details ? ` (${stockData.details})` : '';
+          throw new Error(`${errorMsg}${details}`);
         }
       }
 

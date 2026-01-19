@@ -107,6 +107,25 @@ export async function PUT(
     }
 
     // データベースを更新
+    // カラムが存在しない場合に備えて、まず追加を試みる
+    try {
+      await sql`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS industry VARCHAR(50) DEFAULT NULL`;
+    } catch (alterError: any) {
+      // カラムが既に存在する場合は無視
+      if (!alterError?.message?.includes('already exists') && !alterError?.message?.includes('duplicate')) {
+        console.log('industry column already exists or alter failed:', alterError);
+      }
+    }
+    
+    try {
+      await sql`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS payout_ratio DECIMAL(5, 2) DEFAULT NULL`;
+    } catch (alterError: any) {
+      // カラムが既に存在する場合は無視
+      if (!alterError?.message?.includes('already exists') && !alterError?.message?.includes('duplicate')) {
+        console.log('payout_ratio column already exists or alter failed:', alterError);
+      }
+    }
+
     const result = await sql`
       UPDATE stocks
       SET 
@@ -132,10 +151,15 @@ export async function PUT(
     }
 
     return NextResponse.json(rows[0]);
-  } catch (error) {
+  } catch (error: any) {
     console.error('銘柄更新エラー:', error);
+    // より詳細なエラーメッセージを返す
+    const errorMessage = error?.message || '銘柄の更新に失敗しました';
     return NextResponse.json(
-      { error: '銘柄の更新に失敗しました' },
+      { 
+        error: '銘柄の更新に失敗しました',
+        details: errorMessage 
+      },
       { status: 500 }
     );
   }
