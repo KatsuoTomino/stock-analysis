@@ -20,9 +20,31 @@ export async function PUT(
     const { code, name, purchase_price, shares, purchase_amount, memo, industry, payout_ratio } = body;
 
     // バリデーション
-    if (!code || !name || purchase_price === undefined || !shares || purchase_amount === undefined) {
+    if (!code || !name) {
       return NextResponse.json(
         { error: '必須項目が不足しています' },
+        { status: 400 }
+      );
+    }
+
+    // purchase_price, shares, purchase_amountは0も許可する
+    if (purchase_price === undefined || purchase_price === null) {
+      return NextResponse.json(
+        { error: '取得株価は必須です' },
+        { status: 400 }
+      );
+    }
+
+    if (shares === undefined || shares === null) {
+      return NextResponse.json(
+        { error: '株数は必須です' },
+        { status: 400 }
+      );
+    }
+
+    if (purchase_amount === undefined || purchase_amount === null) {
+      return NextResponse.json(
+        { error: '取得時金額は必須です' },
         { status: 400 }
       );
     }
@@ -153,8 +175,26 @@ export async function PUT(
     return NextResponse.json(rows[0]);
   } catch (error: any) {
     console.error('銘柄更新エラー:', error);
+    console.error('エラー詳細:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+    });
+    
     // より詳細なエラーメッセージを返す
     const errorMessage = error?.message || '銘柄の更新に失敗しました';
+    
+    // データベースエラーの場合、より具体的なメッセージを返す
+    if (error?.message?.includes('column') || error?.message?.includes('does not exist')) {
+      return NextResponse.json(
+        { 
+          error: 'データベースのカラムが存在しません。マイグレーションを実行してください。',
+          details: errorMessage 
+        },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
       { 
         error: '銘柄の更新に失敗しました',
