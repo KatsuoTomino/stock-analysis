@@ -136,26 +136,24 @@ export async function PUT(
       }
     }
     
+    // memoカラムの追加または型変更
     try {
       await sql`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS memo VARCHAR(100) DEFAULT NULL`;
+      // カラムが存在する場合でも、サイズを変更（50→100）
+      await sql`ALTER TABLE stocks ALTER COLUMN memo TYPE VARCHAR(100)`;
     } catch (alterError: any) {
-      // カラムが既に存在する場合は、サイズを変更を試みる
-      try {
-        await sql`ALTER TABLE stocks ALTER COLUMN memo TYPE VARCHAR(100)`;
-      } catch (alterMemoError: any) {
-        console.log('memo column size update failed:', alterMemoError);
-      }
+      // 既に同じ型の場合などはエラーを無視
+      console.log('memo column update:', alterError?.message);
     }
     
+    // payout_ratioカラムの追加または型変更
     try {
       await sql`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS payout_ratio DECIMAL(10, 2) DEFAULT NULL`;
+      // カラムが存在する場合でも、型を変更（DECIMAL(5,2)→DECIMAL(10,2)）
+      await sql`ALTER TABLE stocks ALTER COLUMN payout_ratio TYPE DECIMAL(10, 2)`;
     } catch (alterError: any) {
-      // カラムが既に存在する場合は、型を変更を試みる
-      try {
-        await sql`ALTER TABLE stocks ALTER COLUMN payout_ratio TYPE DECIMAL(10, 2)`;
-      } catch (alterPayoutError: any) {
-        console.log('payout_ratio column type update failed:', alterPayoutError);
-      }
+      // 既に同じ型の場合などはエラーを無視
+      console.log('payout_ratio column update:', alterError?.message);
     }
 
     const result = await sql`

@@ -54,6 +54,28 @@ export async function GET() {
       }
     }
     
+    // memoカラムのサイズ変更とpayout_ratioの型変更のマイグレーション
+    try {
+      const updateMigrationPath = path.join(process.cwd(), 'lib', 'db', 'migration_update_memo_payout.sql');
+      if (fs.existsSync(updateMigrationPath)) {
+        const updateMigration = fs.readFileSync(updateMigrationPath, 'utf8');
+        const updateStatements = updateMigration
+          .split(';')
+          .filter(stmt => stmt.trim().length > 0);
+        
+        for (const statement of updateStatements) {
+          try {
+            await sql.query(statement + ';');
+          } catch (stmtError: any) {
+            // 既に変更済みの場合はエラーを無視
+            console.warn('Update migration statement warning:', stmtError.message);
+          }
+        }
+      }
+    } catch (updateError: any) {
+      console.warn('Update migration warning:', updateError.message);
+    }
+    
     return NextResponse.json({ 
       success: true,
       message: '✅ Migration completed successfully!' 
