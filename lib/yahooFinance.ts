@@ -74,18 +74,19 @@ interface YahooQuoteSummaryResponse {
 
 /**
  * 日本株式の銘柄名を取得
- * @param code 銘柄コード（4桁の数字、例: "7203"）
+ * @param code 銘柄コード（4桁の英数字、例: "7203"）
  * @returns 銘柄名、取得できない場合はnull
  */
 export async function getStockName(code: string): Promise<string | null> {
   try {
-    // 銘柄コードのバリデーション
-    if (!/^\d{4}$/.test(code)) {
+    // 銘柄コードのバリデーション（4桁の英数字を許可）
+    if (!/^[A-Za-z0-9]{4}$/.test(code)) {
       throw new Error('無効な銘柄コードです');
     }
 
     // Yahoo Finance API エンドポイント
-    const symbol = `${code}.T`;
+    // 日本株式の場合は .T サフィックスを付ける
+    const symbol = `${code.toUpperCase()}.T`;
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
 
     const response = await fetch(url, {
@@ -123,19 +124,19 @@ export async function getStockName(code: string): Promise<string | null> {
 
 /**
  * 日本株式の現在株価を取得
- * @param code 銘柄コード（4桁の数字、例: "7203"）
+ * @param code 銘柄コード（4桁の英数字、例: "7203"）
  * @returns 現在株価（円）、取得できない場合はnull
  */
 export async function getStockPrice(code: string): Promise<number | null> {
   try {
-    // 銘柄コードのバリデーション
-    if (!/^\d{4}$/.test(code)) {
+    // 銘柄コードのバリデーション（4桁の英数字を許可）
+    if (!/^[A-Za-z0-9]{4}$/.test(code)) {
       throw new Error('無効な銘柄コードです');
     }
 
     // Yahoo Finance API エンドポイント
     // 日本株式の場合は .T サフィックスを付ける
-    const symbol = `${code}.T`;
+    const symbol = `${code.toUpperCase()}.T`;
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
 
     const response = await fetch(url, {
@@ -198,7 +199,7 @@ export async function getStockPrices(
 
 /**
  * 過去株価データを取得
- * @param code 銘柄コード（4桁の数字、例: "7203"）
+ * @param code 銘柄コード（4桁の英数字、例: "7203"）
  * @param period 期間（1m, 3m, 6m, 1y）
  * @returns 過去株価データの配列、取得できない場合はnull
  */
@@ -207,8 +208,8 @@ export async function getStockHistory(
   period: '1m' | '3m' | '6m' | '1y' = '1m'
 ): Promise<StockHistoryData[] | null> {
   try {
-    // 銘柄コードのバリデーション
-    if (!/^\d{4}$/.test(code)) {
+    // 銘柄コードのバリデーション（4桁の英数字を許可）
+    if (!/^[A-Za-z0-9]{4}$/.test(code)) {
       throw new Error('無効な銘柄コードです');
     }
 
@@ -222,7 +223,7 @@ export async function getStockHistory(
     const range = rangeMap[period] || '1mo';
 
     // Yahoo Finance API エンドポイント
-    const symbol = `${code}.T`;
+    const symbol = `${code.toUpperCase()}.T`;
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=${range}`;
 
     const response = await fetch(url, {
@@ -280,20 +281,20 @@ export async function getStockHistory(
 
 /**
  * 一株配当（年間）を取得
- * @param code 銘柄コード（4桁の数字、例: "7203"）
+ * @param code 銘柄コード（4桁の英数字、例: "7203"）
  * @returns 一株配当（年間、円）、取得できない場合はnull
  * 注意: この値は一株あたりの年間配当金額です。配当利回りを計算するには、この値を株価で割って100を掛けます。
  */
 export async function getDividendAmount(code: string): Promise<number | null> {
   try {
-    // 銘柄コードのバリデーション
-    if (!/^\d{4}$/.test(code)) {
+    // 銘柄コードのバリデーション（4桁の英数字を許可）
+    if (!/^[A-Za-z0-9]{4}$/.test(code)) {
       throw new Error('無効な銘柄コードです');
     }
 
     // Yahoo Finance API エンドポイント（quoteSummary）
     // v10エンドポイントは認証が必要な場合があるため、v8エンドポイントも試す
-    const symbol = `${code}.T`;
+    const symbol = `${code.toUpperCase()}.T`;
     
     // まずv8エンドポイントを試す（認証不要の可能性がある）
     let url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
