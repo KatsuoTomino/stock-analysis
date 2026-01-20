@@ -488,11 +488,12 @@ export default function Home() {
             <div className="flex-1">
               <input
                 type="text"
+                inputMode="text"
                 placeholder="銘柄コード（4桁の英数字、例: 7203）"
                 value={newStockCode}
-                onChange={(e) => setNewStockCode(e.target.value)}
-                pattern="[A-Za-z0-9]{4}"
+                onChange={(e) => setNewStockCode(e.target.value.toUpperCase())}
                 maxLength={4}
+                autoComplete="off"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               />
             </div>
