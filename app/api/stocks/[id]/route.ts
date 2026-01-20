@@ -49,7 +49,7 @@ export async function PUT(
       );
     }
 
-    // メモのバリデーションと正規化（50文字以内、空文字列も許可）
+    // メモのバリデーションと正規化（100文字以内、空文字列も許可）
     let finalMemo: string | null = null;
     if (memo !== undefined && memo !== null) {
       if (typeof memo !== 'string') {
@@ -58,14 +58,14 @@ export async function PUT(
           { status: 400 }
         );
       }
-      // 50文字を超える場合は50文字に切り詰める（フロントエンドでも制限しているが、念のため）
-      const trimmedMemo = memo.length > 50 ? memo.slice(0, 50) : memo;
+      // 100文字を超える場合は100文字に切り詰める（フロントエンドでも制限しているが、念のため）
+      const trimmedMemo = memo.length > 100 ? memo.slice(0, 100) : memo;
       // 空文字列の場合はnullに変換
       finalMemo = trimmedMemo.trim() === '' ? null : trimmedMemo;
       
-      if (memo.length > 50) {
+      if (memo.length > 100) {
         // 警告ログを出力（エラーにはしない）
-        console.warn(`メモが50文字を超えています。切り詰めます: ${memo.length}文字 -> 50文字`);
+        console.warn(`メモが100文字を超えています。切り詰めます: ${memo.length}文字 -> 100文字`);
       }
     }
 
@@ -82,7 +82,7 @@ export async function PUT(
       finalIndustry = trimmedIndustry.trim() === '' ? null : trimmedIndustry;
     }
 
-    // 配当性向のバリデーション（0-100の範囲、空文字列も許可）
+    // 配当性向のバリデーション（マイナス値と100%以上も許可、小数点2桁まで、空文字列も許可）
     let finalPayoutRatio: number | null = null;
     if (payout_ratio !== undefined && payout_ratio !== null) {
       if (typeof payout_ratio !== 'number') {
@@ -91,18 +91,14 @@ export async function PUT(
           { status: 400 }
         );
       }
-      if (payout_ratio < 0 || payout_ratio > 100) {
-        return NextResponse.json(
-          { error: '配当性向は0から100の範囲である必要があります' },
-          { status: 400 }
-        );
-      }
-      finalPayoutRatio = payout_ratio;
+      // 小数点2桁までに丸める
+      finalPayoutRatio = Math.round(payout_ratio * 100) / 100;
     }
 
-    if (typeof code !== 'string' || code.length !== 4) {
+    // 銘柄コードのバリデーション（4桁の英数字を許可）
+    if (typeof code !== 'string' || code.length !== 4 || !/^[A-Za-z0-9]{4}$/.test(code)) {
       return NextResponse.json(
-        { error: '銘柄コードは4桁の文字列である必要があります' },
+        { error: '銘柄コードは4桁の英数字である必要があります' },
         { status: 400 }
       );
     }
@@ -130,6 +126,7 @@ export async function PUT(
 
     // データベースを更新
     // カラムが存在しない場合に備えて、まず追加を試みる
+    // データベースカラムの存在確認と追加（必要に応じて）
     try {
       await sql`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS industry VARCHAR(50) DEFAULT NULL`;
     } catch (alterError: any) {
@@ -140,11 +137,24 @@ export async function PUT(
     }
     
     try {
-      await sql`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS payout_ratio DECIMAL(5, 2) DEFAULT NULL`;
+      await sql`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS memo VARCHAR(100) DEFAULT NULL`;
     } catch (alterError: any) {
-      // カラムが既に存在する場合は無視
-      if (!alterError?.message?.includes('already exists') && !alterError?.message?.includes('duplicate')) {
-        console.log('payout_ratio column already exists or alter failed:', alterError);
+      // カラムが既に存在する場合は、サイズを変更を試みる
+      try {
+        await sql`ALTER TABLE stocks ALTER COLUMN memo TYPE VARCHAR(100)`;
+      } catch (alterMemoError: any) {
+        console.log('memo column size update failed:', alterMemoError);
+      }
+    }
+    
+    try {
+      await sql`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS payout_ratio DECIMAL(10, 2) DEFAULT NULL`;
+    } catch (alterError: any) {
+      // カラムが既に存在する場合は、型を変更を試みる
+      try {
+        await sql`ALTER TABLE stocks ALTER COLUMN payout_ratio TYPE DECIMAL(10, 2)`;
+      } catch (alterPayoutError: any) {
+        console.log('payout_ratio column type update failed:', alterPayoutError);
       }
     }
 

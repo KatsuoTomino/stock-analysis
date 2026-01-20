@@ -15,9 +15,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (typeof code !== 'string' || code.length !== 4) {
+    // 銘柄コードのバリデーション（4桁の英数字を許可）
+    if (typeof code !== 'string' || code.length !== 4 || !/^[A-Za-z0-9]{4}$/.test(code)) {
       return NextResponse.json(
-        { error: '銘柄コードは4桁の文字列である必要があります' },
+        { error: '銘柄コードは4桁の英数字である必要があります' },
         { status: 400 }
       );
     }

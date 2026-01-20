@@ -117,9 +117,9 @@ export default function StockDetailPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     try {
-      // メモフィールドの場合は50文字を超えないように制限（コピー&ペーストにも対応）
+      // メモフィールドの場合は100文字を超えないように制限（コピー&ペーストにも対応）
       if (name === 'memo') {
-        const limitedValue = value.slice(0, 50); // 50文字に制限
+        const limitedValue = value.slice(0, 100); // 100文字に制限
         setFormData((prev) => ({ ...prev, [name]: limitedValue }));
         return;
       }
@@ -132,10 +132,10 @@ export default function StockDetailPage() {
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     try {
-      // メモフィールドでのペースト時も50文字に制限
+      // メモフィールドでのペースト時も100文字に制限
       if (e.currentTarget.name === 'memo') {
         e.preventDefault();
-        const pastedText = e.clipboardData.getData('text').slice(0, 50);
+        const pastedText = e.clipboardData.getData('text').slice(0, 100);
         setFormData((prev) => ({ ...prev, memo: pastedText }));
       }
     } catch (error) {
@@ -216,8 +216,9 @@ export default function StockDetailPage() {
       let payoutRatio: number | null = null;
       if (formData.payout_ratio && formData.payout_ratio.trim() !== '') {
         const parsed = parseFloat(formData.payout_ratio);
-        if (!isNaN(parsed) && parsed >= 0 && parsed <= 100) {
-          payoutRatio = parsed;
+        if (!isNaN(parsed)) {
+          // 小数点2桁までに丸める
+          payoutRatio = Math.round(parsed * 100) / 100;
         }
       }
 
@@ -503,7 +504,7 @@ export default function StockDetailPage() {
                   htmlFor="memo"
                   className="block text-sm font-medium text-gray-900 mb-2"
                 >
-                  購入基準メモ（50文字以内）
+                  購入基準メモ（100文字以内）
                 </label>
                 <textarea
                   id="memo"
@@ -511,7 +512,7 @@ export default function StockDetailPage() {
                   value={formData.memo}
                   onChange={handleChange}
                   onPaste={handlePaste}
-                  maxLength={50}
+                  maxLength={100}
                   rows={3}
                   placeholder="例: 配当利回り3%以上、PER15倍以下を基準に購入"
                   className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium resize-none"
@@ -519,7 +520,7 @@ export default function StockDetailPage() {
                 <p className="mt-2 text-sm text-gray-700">
                   購入基準の参考となるメモを入力してください。メインページでも表示されます。
                   <span className="text-gray-500 ml-2">
-                    ({(formData.memo || '').length}/50文字)
+                    ({(formData.memo || '').length}/100文字)
                   </span>
                 </p>
               </div>
@@ -557,14 +558,12 @@ export default function StockDetailPage() {
                   name="payout_ratio"
                   value={formData.payout_ratio}
                   onChange={handleChange}
-                  min="0"
-                  max="100"
-                  step="0.1"
+                  step="0.01"
                   placeholder="例: 30.5"
                   className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
                 />
                 <p className="mt-2 text-sm text-gray-700">
-                  配当性向をパーセンテージで入力してください（0-100）。メインページでも表示されます。
+                  配当性向をパーセンテージで入力してください（マイナス値や100%以上も入力可能、小数点2桁まで）。メインページでも表示されます。
                 </p>
               </div>
               <button

@@ -8,10 +8,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { code } = body;
 
-    // バリデーション
-    if (!code || !/^\d{4}$/.test(code)) {
+    // バリデーション（4桁の英数字を許可）
+    if (!code || !/^[A-Za-z0-9]{4}$/.test(code)) {
       return NextResponse.json(
-        { error: '有効な4桁の銘柄コードを入力してください' },
+        { error: '有効な4桁の英数字の銘柄コードを入力してください' },
         { status: 400 }
       );
     }

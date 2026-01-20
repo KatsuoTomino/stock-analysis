@@ -247,8 +247,8 @@ export default function Home() {
 
   const handleRegisterStock = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newStockCode || !/^\d{4}$/.test(newStockCode)) {
-      setError('有効な4桁の銘柄コードを入力してください');
+    if (!newStockCode || !/^[A-Za-z0-9]{4}$/.test(newStockCode)) {
+      setError('有効な4桁の英数字の銘柄コードを入力してください');
       return;
     }
 
@@ -488,10 +488,10 @@ export default function Home() {
             <div className="flex-1">
               <input
                 type="text"
-                placeholder="銘柄コード（4桁の数字、例: 7203）"
+                placeholder="銘柄コード（4桁の英数字、例: 7203）"
                 value={newStockCode}
                 onChange={(e) => setNewStockCode(e.target.value)}
-                pattern="[0-9]{4}"
+                pattern="[A-Za-z0-9]{4}"
                 maxLength={4}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               />
@@ -566,7 +566,7 @@ export default function Home() {
         ) : stocks.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow">
             <p className="text-gray-700 mb-4">銘柄が登録されていません</p>
-            <p className="text-sm text-gray-600">銘柄コードを入力して登録してください</p>
+            <p className="text-sm text-gray-600">4桁の英数字の銘柄コードを入力して登録してください</p>
           </div>
         ) : filteredAndSortedStocks.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow">
