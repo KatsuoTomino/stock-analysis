@@ -324,165 +324,169 @@ export default function StockDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
+      <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+        {/* ヘッダー - モバイル対応 */}
+        <div className="flex justify-between items-center mb-4 sm:mb-6">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            className="inline-flex items-center gap-1 sm:gap-2 text-sm sm:text-base text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft size={20} />
-            一覧に戻る
+            <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
+            <span className="hidden xs:inline">一覧に戻る</span>
+            <span className="xs:hidden">戻る</span>
           </Link>
           <button
             onClick={handleLogout}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700 transition-colors"
           >
-            <LogOut size={18} />
-            ログアウト
+            <LogOut size={14} className="sm:w-[18px] sm:h-[18px]" />
+            <span className="hidden sm:inline">ログアウト</span>
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            {stock.name} ({stock.code})
+        {/* 銘柄情報カード - モバイル対応 */}
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
+            <span className="text-xs sm:text-sm font-mono bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded mr-2">
+              {stock.code}
+            </span>
+            {stock.name}
           </h1>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">現在株価</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="bg-gray-50 rounded-lg p-2 sm:p-3 text-center">
+              <p className="text-[10px] sm:text-sm font-medium text-gray-500 mb-0.5 sm:mb-1">現在株価</p>
               {priceLoading ? (
-                <p className="text-lg font-semibold text-gray-600">取得中...</p>
+                <p className="text-sm sm:text-lg font-semibold text-gray-400">...</p>
               ) : currentPrice ? (
-                <p className="text-lg font-semibold text-gray-900">{formatCurrency(currentPrice)}</p>
+                <p className="text-sm sm:text-lg font-semibold text-gray-900">¥{currentPrice.toLocaleString()}</p>
               ) : (
-                <p className="text-lg font-semibold text-gray-600">取得失敗</p>
+                <p className="text-xs sm:text-sm font-semibold text-red-500">取得失敗</p>
               )}
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">取得株数</p>
-              <p className="text-lg font-semibold text-gray-900">{stock.shares.toLocaleString()}株</p>
+            <div className="bg-gray-50 rounded-lg p-2 sm:p-3 text-center">
+              <p className="text-[10px] sm:text-sm font-medium text-gray-500 mb-0.5 sm:mb-1">取得株数</p>
+              <p className="text-sm sm:text-lg font-semibold text-gray-900">{stock.shares.toLocaleString()}</p>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">配当利回り</p>
-              <div className="space-y-1">
+            <div className="bg-gray-50 rounded-lg p-2 sm:p-3 text-center">
+              <p className="text-[10px] sm:text-sm font-medium text-gray-500 mb-0.5 sm:mb-1">配当利回り</p>
+              <div className="space-y-0.5">
                 {dividendYieldAtPurchase !== null && (
-                  <p className="text-sm font-semibold text-blue-600">
-                    取得株価: {dividendYieldAtPurchase.toFixed(2)}%
+                  <p className="text-xs sm:text-sm font-semibold text-blue-600">
+                    {dividendYieldAtPurchase.toFixed(2)}%
                   </p>
                 )}
                 {dividendYieldAtCurrent !== null && (
-                  <p className="text-sm font-semibold text-green-600">
-                    現在株価: {dividendYieldAtCurrent.toFixed(2)}%
+                  <p className="text-xs sm:text-sm font-semibold text-green-600">
+                    {dividendYieldAtCurrent.toFixed(2)}%
                   </p>
                 )}
                 {dividendYieldAtPurchase === null && dividendYieldAtCurrent === null && (
-                  <p className="text-sm text-gray-600">-</p>
+                  <p className="text-sm text-gray-400">-</p>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* 外部リンク */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">外部リンク</h2>
-          <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
+        {/* 外部リンク - モバイル対応 */}
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+          <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">外部リンク</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
             <a
               href={`https://minkabu.jp/stock/${stock.code}/dividend`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors"
             >
-              <ExternalLink size={18} />
-              みんかぶ配当ページ
+              <ExternalLink size={14} className="sm:w-[18px] sm:h-[18px]" />
+              みんかぶ配当
             </a>
             <a
               href={`https://stocks.finance.yahoo.co.jp/stocks/detail/?code=${stock.code}.T`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-green-600 text-white text-xs sm:text-sm rounded-lg hover:bg-green-700 transition-colors"
             >
-              <ExternalLink size={18} />
-              Yahoo!ファイナンス優待ページ
+              <ExternalLink size={14} className="sm:w-[18px] sm:h-[18px]" />
+              Yahoo!ファイナンス
             </a>
             <a
               href={`https://minkabu.jp/stock/${stock.code}/yutai`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-purple-600 text-white text-xs sm:text-sm rounded-lg hover:bg-purple-700 transition-colors"
             >
-              <ExternalLink size={18} />
-              みんかぶ優待ページ
+              <ExternalLink size={14} className="sm:w-[18px] sm:h-[18px]" />
+              みんかぶ優待
             </a>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">設定情報</h2>
+        {/* 設定情報 - モバイル対応 */}
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+          <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">設定情報</h2>
 
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
               {error}
             </div>
           )}
 
           {successMessage && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+            <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
               {successMessage}
             </div>
           )}
 
           {!loading && mounted && (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label
-                  htmlFor="purchase_price"
-                  className="block text-sm font-medium text-gray-900 mb-2"
-                >
-                  取得株価（円）
-                </label>
-                <input
-                  type="number"
-                  id="purchase_price"
-                  name="purchase_price"
-                  value={formData.purchase_price}
-                  onChange={handleChange}
-                  min="0"
-                  step="0.01"
-                  placeholder="例: 2500.00"
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
-                />
-                <p className="mt-2 text-sm text-gray-700">
-                  1株あたりの取得株価を入力してください。
-                </p>
-              </div>
-              <div>
-                <label
-                  htmlFor="shares"
-                  className="block text-sm font-medium text-gray-900 mb-2"
-                >
-                  取得株数（株）
-                </label>
-                <input
-                  type="number"
-                  id="shares"
-                  name="shares"
-                  value={formData.shares}
-                  onChange={handleChange}
-                  min="0"
-                  step="1"
-                  placeholder="例: 100"
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
-                />
-                <p className="mt-2 text-sm text-gray-700">
-                  取得した株数を入力してください。
-                </p>
+              {/* 取得株価と株数を横並び（モバイルでも） */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label
+                    htmlFor="purchase_price"
+                    className="block text-xs sm:text-sm font-medium text-gray-900 mb-1 sm:mb-2"
+                  >
+                    取得株価（円）
+                  </label>
+                  <input
+                    type="number"
+                    id="purchase_price"
+                    name="purchase_price"
+                    value={formData.purchase_price}
+                    onChange={handleChange}
+                    min="0"
+                    step="0.01"
+                    placeholder="2500"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="shares"
+                    className="block text-xs sm:text-sm font-medium text-gray-900 mb-1 sm:mb-2"
+                  >
+                    取得株数（株）
+                  </label>
+                  <input
+                    type="number"
+                    id="shares"
+                    name="shares"
+                    value={formData.shares}
+                    onChange={handleChange}
+                    min="0"
+                    step="1"
+                    placeholder="100"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
+                  />
+                </div>
               </div>
               <div>
                 <label
                   htmlFor="amount"
-                  className="block text-sm font-medium text-gray-900 mb-2"
+                  className="block text-xs sm:text-sm font-medium text-gray-900 mb-1 sm:mb-2"
                 >
-                  配当金額（年間、円）
+                  配当金額（年間1株、円）
                 </label>
                 <input
                   type="number"
@@ -492,19 +496,20 @@ export default function StockDetailPage() {
                   onChange={handleChange}
                   min="0"
                   step="0.01"
-                  placeholder="例: 100.00"
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
+                  placeholder="100"
+                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
                 />
-                <p className="mt-2 text-sm text-gray-700">
-                  一株あたりの年間配当金額を入力してください。みんかぶの配当ページで確認できます。
+                <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-500">
+                  1株あたりの年間配当金額
                 </p>
               </div>
               <div>
                 <label
                   htmlFor="memo"
-                  className="block text-sm font-medium text-gray-900 mb-2"
+                  className="block text-xs sm:text-sm font-medium text-gray-900 mb-1 sm:mb-2"
                 >
-                  購入基準メモ（100文字以内）
+                  購入基準メモ
+                  <span className="text-gray-400 font-normal ml-1">({(formData.memo || '').length}/100)</span>
                 </label>
                 <textarea
                   id="memo"
@@ -513,76 +518,66 @@ export default function StockDetailPage() {
                   onChange={handleChange}
                   onPaste={handlePaste}
                   maxLength={100}
-                  rows={3}
-                  placeholder="例: 配当利回り3%以上、PER15倍以下を基準に購入"
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium resize-none"
+                  rows={2}
+                  placeholder="配当利回り3%以上を基準に購入"
+                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium resize-none"
                 />
-                <p className="mt-2 text-sm text-gray-700">
-                  購入基準の参考となるメモを入力してください。メインページでも表示されます。
-                  <span className="text-gray-500 ml-2">
-                    ({(formData.memo || '').length}/100文字)
-                  </span>
-                </p>
               </div>
-              <div>
-                <label
-                  htmlFor="industry"
-                  className="block text-sm font-medium text-gray-900 mb-2"
-                >
-                  業種
-                </label>
-                <input
-                  type="text"
-                  id="industry"
-                  name="industry"
-                  value={formData.industry}
-                  onChange={handleChange}
-                  maxLength={50}
-                  placeholder="例: 自動車"
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
-                />
-                <p className="mt-2 text-sm text-gray-700">
-                  銘柄の業種を入力してください。メインページでも表示されます。
-                </p>
-              </div>
-              <div>
-                <label
-                  htmlFor="payout_ratio"
-                  className="block text-sm font-medium text-gray-900 mb-2"
-                >
-                  配当性向（%）
-                </label>
-                <input
-                  type="number"
-                  id="payout_ratio"
-                  name="payout_ratio"
-                  value={formData.payout_ratio}
-                  onChange={handleChange}
-                  step="0.01"
-                  placeholder="例: 30.5"
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
-                />
-                <p className="mt-2 text-sm text-gray-700">
-                  配当性向をパーセンテージで入力してください（マイナス値や100%以上も入力可能、小数点2桁まで）。メインページでも表示されます。
-                </p>
+              {/* 業種と配当性向を横並び */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label
+                    htmlFor="industry"
+                    className="block text-xs sm:text-sm font-medium text-gray-900 mb-1 sm:mb-2"
+                  >
+                    業種
+                  </label>
+                  <input
+                    type="text"
+                    id="industry"
+                    name="industry"
+                    value={formData.industry}
+                    onChange={handleChange}
+                    maxLength={50}
+                    placeholder="自動車"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="payout_ratio"
+                    className="block text-xs sm:text-sm font-medium text-gray-900 mb-1 sm:mb-2"
+                  >
+                    配当性向（%）
+                  </label>
+                  <input
+                    type="number"
+                    id="payout_ratio"
+                    name="payout_ratio"
+                    value={formData.payout_ratio}
+                    onChange={handleChange}
+                    step="0.01"
+                    placeholder="30.5"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
+                  />
+                </div>
               </div>
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
-                <Plus size={18} />
-                {saving ? '保存中...' : '情報を更新'}
+                <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
+                {saving ? '保存中...' : '保存'}
               </button>
             </form>
           )}
         </div>
 
-        {/* チャート */}
+        {/* チャート - モバイル対応 */}
         {stock && (
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <StockChart stockId={stock.id} stockCode={stock.code} stockName={stock.name} />
-          </div>
         )}
       </div>
     </div>

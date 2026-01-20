@@ -407,128 +407,171 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-3">
+        {/* ヘッダー - モバイル対応 */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg blur-sm opacity-50"></div>
-              <div className="relative bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg p-3">
-                <TrendingUp className="w-8 h-8 text-white" />
+              <div className="relative bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg p-2 sm:p-3">
+                <TrendingUp className="w-5 h-5 sm:w-8 sm:h-8 text-white" />
               </div>
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">
                 Tomikawa Finance
               </h1>
-              <p className="text-sm text-gray-600 mt-1">ポートフォリオ管理システム</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1">ポートフォリオ管理</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-end">
             {session && (
-              <div className="text-sm text-gray-600">
+              <div className="hidden sm:block text-sm text-gray-600">
                 <span className="font-medium">{session.user?.name}</span> としてログイン中
               </div>
             )}
             <button
               onClick={handleLogout}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-600 text-white text-xs sm:text-sm rounded-lg hover:bg-gray-700 transition-colors"
             >
-              <LogOut size={18} />
-              ログアウト
+              <LogOut size={14} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="hidden xs:inline">ログアウト</span>
             </button>
           </div>
         </div>
 
-        {/* サマリーカード */}
+        {/* サマリーカード - モバイル対応（横スクロール可能） */}
         {(() => {
           const summary = calculateSummary();
           return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
-              <div className="bg-white rounded-lg shadow p-4">
-                <p className="text-sm text-gray-700 font-medium mb-1">総投資金額</p>
-                <p className="text-xl font-bold text-gray-900">{formatCurrency(summary.totalInvestment)}</p>
+            <div className="mb-4 sm:mb-6">
+              {/* モバイル: 横スクロール */}
+              <div className="sm:hidden overflow-x-auto pb-2 -mx-4 px-4">
+                <div className="flex gap-3" style={{ minWidth: 'max-content' }}>
+                  <div className="bg-white rounded-lg shadow p-3 min-w-[140px]">
+                    <p className="text-xs text-gray-600 font-medium mb-0.5">総投資金額</p>
+                    <p className="text-base font-bold text-gray-900">{formatCurrency(summary.totalInvestment)}</p>
+                  </div>
+                  <div className="bg-white rounded-lg shadow p-3 min-w-[140px]">
+                    <p className="text-xs text-gray-600 font-medium mb-0.5">総評価額</p>
+                    <p className="text-base font-bold text-gray-900">
+                      {summary.totalCurrentValue > 0 ? formatCurrency(summary.totalCurrentValue) : '-'}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg shadow p-3 min-w-[140px]">
+                    <p className="text-xs text-gray-600 font-medium mb-0.5">総損益</p>
+                    <p className={`text-base font-bold ${summary.totalProfitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {summary.totalCurrentValue > 0 ? formatCurrency(summary.totalProfitLoss) : '-'}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg shadow p-3 min-w-[100px]">
+                    <p className="text-xs text-gray-600 font-medium mb-0.5">損益率</p>
+                    <p className={`text-base font-bold ${summary.totalProfitLossRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {summary.totalCurrentValue > 0 ? formatPercentage(summary.totalProfitLossRate) : '-'}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg shadow p-3 min-w-[100px]">
+                    <p className="text-xs text-gray-600 font-medium mb-0.5">配当利回り</p>
+                    <p className="text-base font-bold text-blue-600">
+                      {summary.portfolioDividendYield !== null ? `${summary.portfolioDividendYield.toFixed(2)}%` : '-'}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg shadow p-3 min-w-[140px]">
+                    <p className="text-xs text-gray-600 font-medium mb-0.5">配当金累計</p>
+                    <p className="text-base font-bold text-purple-600">
+                      {summary.totalDividendAfterTax > 0 ? formatCurrency(summary.totalDividendAfterTax) : '-'}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="bg-white rounded-lg shadow p-4">
-                <p className="text-sm text-gray-700 font-medium mb-1">総評価額</p>
-                <p className="text-xl font-bold text-gray-900">
-                  {summary.totalCurrentValue > 0 ? formatCurrency(summary.totalCurrentValue) : '-'}
-                </p>
-              </div>
-              <div className="bg-white rounded-lg shadow p-4">
-                <p className="text-sm text-gray-700 font-medium mb-1">総損益金額</p>
-                <p className={`text-xl font-bold ${summary.totalProfitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {summary.totalCurrentValue > 0 ? formatCurrency(summary.totalProfitLoss) : '-'}
-                </p>
-              </div>
-              <div className="bg-white rounded-lg shadow p-4">
-                <p className="text-sm text-gray-700 font-medium mb-1">総損益率</p>
-                <p className={`text-xl font-bold ${summary.totalProfitLossRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {summary.totalCurrentValue > 0 ? formatPercentage(summary.totalProfitLossRate) : '-'}
-                </p>
-              </div>
-              <div className="bg-white rounded-lg shadow p-4">
-                <p className="text-sm text-gray-700 font-medium mb-1">ポートフォリオ配当利回り</p>
-                <p className="text-xl font-bold text-blue-600">
-                  {summary.portfolioDividendYield !== null ? `${summary.portfolioDividendYield.toFixed(2)}%` : '-'}
-                </p>
-              </div>
-              <div className="bg-white rounded-lg shadow p-4">
-                <p className="text-sm text-gray-700 font-medium mb-1">配当金累計（税抜）</p>
-                <p className="text-xl font-bold text-purple-600">
-                  {summary.totalDividendAfterTax > 0 ? formatCurrency(summary.totalDividendAfterTax) : '-'}
-                </p>
+              {/* デスクトップ: グリッド */}
+              <div className="hidden sm:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                <div className="bg-white rounded-lg shadow p-4">
+                  <p className="text-sm text-gray-700 font-medium mb-1">総投資金額</p>
+                  <p className="text-xl font-bold text-gray-900">{formatCurrency(summary.totalInvestment)}</p>
+                </div>
+                <div className="bg-white rounded-lg shadow p-4">
+                  <p className="text-sm text-gray-700 font-medium mb-1">総評価額</p>
+                  <p className="text-xl font-bold text-gray-900">
+                    {summary.totalCurrentValue > 0 ? formatCurrency(summary.totalCurrentValue) : '-'}
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg shadow p-4">
+                  <p className="text-sm text-gray-700 font-medium mb-1">総損益金額</p>
+                  <p className={`text-xl font-bold ${summary.totalProfitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {summary.totalCurrentValue > 0 ? formatCurrency(summary.totalProfitLoss) : '-'}
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg shadow p-4">
+                  <p className="text-sm text-gray-700 font-medium mb-1">総損益率</p>
+                  <p className={`text-xl font-bold ${summary.totalProfitLossRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {summary.totalCurrentValue > 0 ? formatPercentage(summary.totalProfitLossRate) : '-'}
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg shadow p-4">
+                  <p className="text-sm text-gray-700 font-medium mb-1">ポートフォリオ配当利回り</p>
+                  <p className="text-xl font-bold text-blue-600">
+                    {summary.portfolioDividendYield !== null ? `${summary.portfolioDividendYield.toFixed(2)}%` : '-'}
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg shadow p-4">
+                  <p className="text-sm text-gray-700 font-medium mb-1">配当金累計（税抜）</p>
+                  <p className="text-xl font-bold text-purple-600">
+                    {summary.totalDividendAfterTax > 0 ? formatCurrency(summary.totalDividendAfterTax) : '-'}
+                  </p>
+                </div>
               </div>
             </div>
           );
         })()}
 
-        {/* 新規登録フォーム */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">新規銘柄登録</h2>
-          <form onSubmit={handleRegisterStock} className="flex flex-col md:flex-row gap-4">
+        {/* 新規登録フォーム - モバイル対応 */}
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4 mb-4 sm:mb-6">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">新規銘柄登録</h2>
+          <form onSubmit={handleRegisterStock} className="flex gap-2 sm:gap-4">
             <div className="flex-1">
               <input
                 type="text"
                 inputMode="text"
-                placeholder="銘柄コード（4桁の英数字、例: 7203）"
+                placeholder="銘柄コード（例: 7203）"
                 value={newStockCode}
                 onChange={(e) => setNewStockCode(e.target.value.toUpperCase())}
                 maxLength={4}
                 autoComplete="off"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               />
             </div>
             <button
               type="submit"
               disabled={registering || !newStockCode}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="px-3 sm:px-6 py-2 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap"
             >
-              <Plus size={20} />
-              {registering ? '登録中...' : '登録'}
+              <Plus size={16} className="sm:w-5 sm:h-5" />
+              {registering ? '登録中' : '登録'}
             </button>
           </form>
         </div>
 
-        {/* 検索・ソート機能 */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
+        {/* 検索・ソート機能 - モバイル対応 */}
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <div className="flex-1">
               <input
                 type="text"
-                placeholder="銘柄コードまたは銘柄名で検索..."
+                placeholder="検索..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               />
             </div>
             <div className="flex gap-2">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'default' | 'profitLoss' | 'dividendYield')}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
               >
-                <option value="default">デフォルト順</option>
-                <option value="profitLoss">損益金額順</option>
-                <option value="dividendYield">配当利回り順</option>
+                <option value="default">登録順</option>
+                <option value="profitLoss">損益順</option>
+                <option value="dividendYield">利回り順</option>
               </select>
             </div>
           </div>
@@ -797,119 +840,129 @@ export default function Home() {
             </div>
           </div>
 
-          {/* モバイル: カード表示 */}
-          <div className="md:hidden space-y-4">
+          {/* モバイル: カード表示 - 改善版 */}
+          <div className="md:hidden space-y-3">
             {filteredAndSortedStocks.map((stock) => {
               const currentValue = calculateCurrentValue(stock);
               const profitLoss = calculateProfitLoss(stock);
               const profitLossRate = calculateProfitLossRate(stock);
 
               return (
-                <div key={stock.id} className="bg-white rounded-lg shadow p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <Link
-                        href={`/stocks/${stock.id}`}
-                        className="text-lg font-bold text-blue-600 hover:text-blue-900 hover:underline"
-                      >
-                        {stock.name}
+                <div key={stock.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                  {/* ヘッダー部分 */}
+                  <div className="bg-gradient-to-r from-gray-50 to-white px-4 py-3 border-b border-gray-100">
+                    <div className="flex justify-between items-start">
+                      <Link href={`/stocks/${stock.id}`} className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                            {stock.code}
+                          </span>
+                          {stock.industry && (
+                            <span className="text-xs text-gray-500 truncate">{stock.industry}</span>
+                          )}
+                        </div>
+                        <h3 className="text-base font-bold text-gray-900 mt-1 truncate">
+                          {stock.name}
+                        </h3>
                       </Link>
-                      <p className="text-sm text-gray-700">{stock.code}</p>
-                      {stock.industry && (
-                        <p className="text-xs text-gray-500 mt-1">{stock.industry}</p>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
                       <button
                         onClick={() => handleDelete(stock.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="ml-2 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="削除"
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-gray-900 font-semibold">取得株価</p>
-                      <p className="text-gray-900 font-bold text-base">{formatCurrency(stock.purchase_price)}</p>
+
+                  {/* メイン情報 */}
+                  <div className="px-4 py-3">
+                    {/* 株価情報 */}
+                    <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-100">
+                      <div className="text-center flex-1">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wide">取得</p>
+                        <p className="text-sm font-bold text-gray-900">
+                          {stock.purchase_price > 0 ? `¥${stock.purchase_price.toLocaleString()}` : '-'}
+                        </p>
+                      </div>
+                      <div className="text-gray-300 px-2">→</div>
+                      <div className="text-center flex-1">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wide">現在</p>
+                        <p className="text-sm font-bold text-gray-900">
+                          {stock.priceLoading ? (
+                            <span className="text-gray-400">...</span>
+                          ) : stock.currentPrice !== null ? (
+                            `¥${stock.currentPrice.toLocaleString()}`
+                          ) : (
+                            <span className="text-red-500 text-xs">取得失敗</span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="text-center flex-1 pl-2 border-l border-gray-100">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wide">株数</p>
+                        <p className="text-sm font-bold text-gray-900">{stock.shares > 0 ? stock.shares.toLocaleString() : '-'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-gray-900 font-semibold">現在株価</p>
-                      <p className="text-gray-900 font-bold text-base">
-                        {stock.priceLoading ? (
-                          <span className="text-gray-600">取得中...</span>
-                        ) : stock.currentPrice !== null ? (
-                          formatCurrency(stock.currentPrice)
-                        ) : (
-                          <span className="text-red-600 font-bold">取得失敗</span>
-                        )}
-                      </p>
+
+                    {/* 損益情報 */}
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      <div className="bg-gray-50 rounded-lg p-2 text-center">
+                        <p className="text-[10px] text-gray-500 mb-0.5">評価額</p>
+                        <p className="text-xs font-bold text-gray-900">
+                          {currentValue !== null ? `¥${Math.round(currentValue).toLocaleString()}` : '-'}
+                        </p>
+                      </div>
+                      <div className={`rounded-lg p-2 text-center ${profitLoss !== null && profitLoss >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
+                        <p className="text-[10px] text-gray-500 mb-0.5">損益</p>
+                        <p className={`text-xs font-bold ${profitLoss !== null && profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {profitLoss !== null ? `${profitLoss >= 0 ? '+' : ''}¥${Math.round(profitLoss).toLocaleString()}` : '-'}
+                        </p>
+                      </div>
+                      <div className={`rounded-lg p-2 text-center ${profitLossRate !== null && profitLossRate >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
+                        <p className="text-[10px] text-gray-500 mb-0.5">損益率</p>
+                        <p className={`text-xs font-bold ${profitLossRate !== null && profitLossRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {profitLossRate !== null ? `${profitLossRate >= 0 ? '+' : ''}${profitLossRate.toFixed(1)}%` : '-'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-gray-900 font-semibold">株数</p>
-                      <p className="text-gray-900 font-bold text-base">{stock.shares.toLocaleString()}株</p>
+
+                    {/* 配当情報 */}
+                    <div className="grid grid-cols-4 gap-1.5 text-center">
+                      <div className="bg-blue-50 rounded-lg py-1.5 px-1">
+                        <p className="text-[9px] text-blue-600 mb-0.5">配当金</p>
+                        <p className="text-[11px] font-bold text-blue-700">
+                          {stock.dividendAmount !== null && stock.shares > 0 
+                            ? `¥${Math.round(stock.dividendAmount * stock.shares).toLocaleString()}` 
+                            : '-'}
+                        </p>
+                      </div>
+                      <div className="bg-purple-50 rounded-lg py-1.5 px-1">
+                        <p className="text-[9px] text-purple-600 mb-0.5">配当性向</p>
+                        <p className={`text-[11px] font-bold ${stock.payout_ratio !== null ? (stock.payout_ratio > 80 ? 'text-red-600' : stock.payout_ratio > 50 ? 'text-yellow-600' : 'text-green-600') : 'text-gray-400'}`}>
+                          {stock.payout_ratio !== null ? `${stock.payout_ratio.toFixed(0)}%` : '-'}
+                        </p>
+                      </div>
+                      <div className="bg-indigo-50 rounded-lg py-1.5 px-1">
+                        <p className="text-[9px] text-indigo-600 mb-0.5">取得利回り</p>
+                        <p className="text-[11px] font-bold text-indigo-700">
+                          {stock.dividendYieldAtPurchase !== null ? `${stock.dividendYieldAtPurchase.toFixed(1)}%` : '-'}
+                        </p>
+                      </div>
+                      <div className="bg-teal-50 rounded-lg py-1.5 px-1">
+                        <p className="text-[9px] text-teal-600 mb-0.5">現在利回り</p>
+                        <p className="text-[11px] font-bold text-teal-700">
+                          {stock.dividendYieldAtCurrent !== null ? `${stock.dividendYieldAtCurrent.toFixed(1)}%` : '-'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-gray-900 font-semibold">現在評価額</p>
-                      <p className="text-gray-900 font-bold text-base">
-                        {currentValue !== null ? formatCurrency(currentValue) : <span className="text-gray-600">-</span>}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-700 font-medium">損益金額</p>
-                      <p className={`font-semibold ${profitLoss !== null && profitLoss >= 0 ? 'text-green-600' : profitLoss !== null ? 'text-red-600' : 'text-gray-400'}`}>
-                        {profitLoss !== null ? formatCurrency(profitLoss) : '-'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-700 font-medium">損益率</p>
-                      <p className={`font-semibold ${profitLossRate !== null && profitLossRate >= 0 ? 'text-green-600' : profitLossRate !== null ? 'text-red-600' : 'text-gray-400'}`}>
-                        {profitLossRate !== null ? formatPercentage(profitLossRate) : '-'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-700 font-medium">配当金</p>
-                      <p className={`font-semibold ${stock.dividendAmount !== null && stock.shares > 0 ? 'text-gray-900' : 'text-gray-600'}`}>
-                        {stock.dividendAmount !== null && stock.shares > 0 ? formatCurrency(stock.dividendAmount * stock.shares) : '-'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-700 font-medium">配当性向</p>
-                      <p className={`font-semibold ${stock.payout_ratio !== null && stock.payout_ratio > 0 ? (stock.payout_ratio > 80 ? 'text-red-600' : stock.payout_ratio > 50 ? 'text-yellow-600' : 'text-green-600') : 'text-gray-400'}`}>
-                        {stock.payout_ratio !== null && stock.payout_ratio > 0 ? `${stock.payout_ratio.toFixed(1)}%` : '-'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-700 font-medium">取得株価配当利回り</p>
-                      <p className={`font-semibold ${stock.dividendYieldAtPurchase !== null ? 'text-blue-600' : 'text-gray-400'}`}>
-                        {stock.dividendYieldAtPurchase !== null ? `${stock.dividendYieldAtPurchase.toFixed(2)}%` : '-'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-700 font-medium">現在株価配当利回り</p>
-                      <p className={`font-semibold ${stock.dividendYieldAtCurrent !== null ? 'text-green-600' : 'text-gray-400'}`}>
-                        {stock.dividendYieldAtCurrent !== null ? `${stock.dividendYieldAtCurrent.toFixed(2)}%` : '-'}
-                      </p>
-                    </div>
+
+                    {/* メモ */}
                     {stock.memo && stock.memo.trim() && (
-                      <div className="col-span-2">
-                        <p className="text-gray-900 font-semibold mb-1">購入基準メモ</p>
-                        <div 
-                          className="text-gray-900 text-sm bg-gray-50 p-3 rounded border border-gray-200 break-words" 
-                          style={{ 
-                            wordBreak: 'break-word', 
-                            whiteSpace: 'normal',
-                            writingMode: 'horizontal-tb',
-                            textOrientation: 'mixed',
-                            lineHeight: '1.6',
-                            display: 'block',
-                            overflowWrap: 'break-word',
-                            wordWrap: 'break-word'
-                          }}
-                        >
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">メモ</p>
+                        <p className="text-xs text-gray-700 leading-relaxed break-words">
                           {stock.memo}
-                        </div>
+                        </p>
                       </div>
                     )}
                   </div>
